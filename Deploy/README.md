@@ -13,7 +13,7 @@
 ---
 
 ## 🔗 ลิงก์เข้าใช้งานระบบ (Quick Links)
-- 📊 **Google Sheets (ฐานข้อมูล):** [คลิกเพื่อเปิดชีตทะเบียนเครื่องมือ](https://docs.google.com/spreadsheets/d/1MumrJkfLnCZ_ZwGgBW72agnT-ZeOx0KDAG7kEAi1UxU/edit?usp=sharing)
+- 📊 **Google Sheets (ฐานข้อมูล):** spreadsheets ชื่อ (**BTT-เครื่องมือ**)
 - 🚀 **Web Application (ใช้งานระบบ):** [คลิกเพื่อเปิดหน้าเว็บแอปพลิเคชัน](https://script.google.com/macros/s/AKfycbw_ydMfe1kqLHSczJk4HNxSjMAu3DuvEbTuPCk5D3gp5gQGJjRD8wCo0YxoU23Lp-6OsQ/exec)
 - 📂 **Source Code (ซอร์สโค้ด):** [คลิกดูโค้ดทั้งหมดบน GitHub](https://github.com/kxma-blazi/btt-Equipment/tree/main/Deploy)
 
