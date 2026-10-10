@@ -1,0 +1,3108 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ระบบจัดการ Tool Manager</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- FontAwesome 6 -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <!-- Google Fonts Prompt -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Html5-Qrcode Library สำหรับสแกนกล้อง -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+
+    <style>
+      * {
+        font-family: 'Prompt', sans-serif;
+      }
+      body {
+        background-color: #f4f6f9;
+        color: #2d3748;
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      /* Dark Mode Styling */
+      body.dark-mode {
+        background-color: #121212;
+        color: #e0e0e0;
+      }
+      .dark-mode .card {
+        background-color: #1e1e1e;
+        color: #fff;
+        border: 1px solid #333;
+      }
+      .dark-mode .table-container {
+        background: #1e1e1e;
+        border: 1px solid #333;
+      }
+      .dark-mode table {
+        color: #e0e0e0;
+      }
+      .dark-mode .table-light {
+        background-color: #2a2a2a;
+        color: #fff;
+        border-color: #444;
+      }
+      .dark-mode .form-control,
+      .dark-mode .form-select {
+        background-color: #2a2a2a;
+        color: #fff;
+        border-color: #444;
+      }
+      .dark-mode .modal-content {
+        background-color: #1e1e1e;
+        color: #fff;
+        border: 1px solid #444;
+      }
+      .dark-mode .nav-pills .nav-link {
+        color: #aaa;
+      }
+      .dark-mode .nav-pills .nav-link.active {
+        background-color: #ec4899;
+        color: #fff;
+      }
+
+      .dark-mode .text-muted {
+        color: #b5b5b5 !important;
+      }
+      .dark-mode .list-group-item,
+      .dark-mode .input-group-text {
+        background-color: #2a2a2a;
+        color: #fff;
+        border-color: #444;
+      }
+      .dark-mode .form-label {
+        color: #e0e0e0;
+      }
+
+      /* Custom Cards & Tables */
+      .card {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      }
+      .table-container {
+        background: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      }
+
+      .badge-available {
+        background-color: #10b981;
+        color: #fff;
+      }
+      .badge-borrowed {
+        background-color: #f59e0b;
+        color: #fff;
+      }
+      .badge-repair {
+        background-color: #ef4444;
+        color: #fff;
+      }
+
+      .qr-thumb {
+        width: 38px;
+        height: 38px;
+        cursor: pointer;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+      }
+      .asset-img {
+        width: 45px;
+        height: 45px;
+        object-fit: cover;
+        border-radius: 6px;
+        cursor: pointer;
+        border: 1px solid #eee;
+      }
+
+      .btn-btt {
+        background-color: #ec4899;
+        color: #fff;
+        border: none;
+        font-weight: 500;
+      }
+      .btn-btt:hover {
+        background-color: #db2777;
+        color: #fff;
+      }
+
+      .nav-pills .nav-link.active {
+        background-color: #ec4899;
+      }
+      .nav-pills .nav-link {
+        color: #555;
+        font-weight: 500;
+      }
+      /* Dark mode: ตารางและตัวหนังสือเป็นสีขาว */
+      .dark-mode .table {
+        --bs-table-color: #fff;
+        --bs-table-bg: transparent;
+        --bs-table-hover-color: #fff;
+        --bs-table-hover-bg: rgba(255, 255, 255, 0.08);
+        --bs-table-border-color: #444;
+        color: #fff;
+      }
+      .dark-mode .table-light {
+        --bs-table-bg: #2a2a2a;
+        --bs-table-color: #fff;
+      }
+      .dark-mode h2,
+      .dark-mode h5 {
+        color: #fff;
+      }
+      .dark-mode .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%);
+      }
+      .dark-mode .form-control::placeholder {
+        color: #aaa;
+      }
+      .dark-mode .modal-header,
+      .dark-mode .modal-footer {
+        border-color: #444;
+      }
+      #operatorName.d-none + #btnAddOperator,
+      #borrowerName.d-none + #btnAddBorrower {
+        display: none !important;
+      }
+      /* ---------- Contact popup ---------- */
+      .modal-content.ct-card {
+        background: linear-gradient(160deg, #1b1530 0%, #2a1245 45%, #4a1238 100%);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 25px 60px rgba(236, 72, 153, 0.35);
+        position: relative;
+      }
+      .modal.show .ct-card {
+        animation: ctPop 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+      }
+      @keyframes ctPop {
+        from { opacity: 0; transform: scale(0.85) translateY(20px); }
+        to { opacity: 1; transform: none; }
+      }
+      .ct-card::before {
+        content: '';
+        position: absolute;
+        width: 280px;
+        height: 280px;
+        right: -90px;
+        top: -100px;
+        background: radial-gradient(circle, rgba(236, 72, 153, 0.55), transparent 70%);
+        pointer-events: none;
+      }
+      .ct-close {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        z-index: 3;
+        filter: invert(1) grayscale(100%) brightness(200%);
+      }
+      .ct-hero { text-align: center; padding: 28px 24px 8px; position: relative; }
+      .ct-avatar {
+        width: 68px; height: 68px; margin: 0 auto 10px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; font-size: 28px;
+        background: linear-gradient(135deg, #ec4899, #8b5cf6);
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1), 0 8px 24px rgba(236, 72, 153, 0.5);
+      }
+      .ct-name { font-size: 1.3rem; font-weight: 700; }
+      .ct-title { color: #f9a8d4; font-size: 0.85rem; letter-spacing: 0.5px; }
+      .ct-note { color: #d1c9e6; font-size: 0.85rem; margin-top: 6px; }
+      .ct-qrwrap { text-align: center; padding: 12px 24px; position: relative; }
+      .ct-qr {
+        display: inline-block; background: #fff; border-radius: 20px; padding: 12px;
+        box-shadow: 0 0 0 3px #06c755, 0 0 28px rgba(6, 199, 85, 0.55);
+        animation: ctGlow 2.6s ease-in-out infinite;
+      }
+      .ct-qr img { width: 200px; height: 200px; display: block; }
+      .ct-qr .ct-noqr { width: 200px; padding: 40px 8px; color: #6b7280; font-size: 0.85rem; }
+      @keyframes ctGlow {
+        50% { box-shadow: 0 0 0 3px #06c755, 0 0 46px rgba(6, 199, 85, 0.9); }
+      }
+      .ct-scan { margin-top: 10px; font-size: 0.85rem; color: #86efac; }
+      .ct-rows { padding: 4px 20px 8px; display: flex; flex-direction: column; gap: 8px; position: relative; }
+      .ct-row {
+        display: flex; align-items: center; gap: 12px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 14px; padding: 10px 12px;
+        transition: transform 0.15s, background 0.15s;
+      }
+      .ct-row:hover { transform: translateY(-2px); background: rgba(255, 255, 255, 0.13); }
+      .ct-ico {
+        width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center; font-size: 18px;
+      }
+      .ct-txt { flex: 1; min-width: 0; }
+      .ct-txt small { display: block; color: #b9afd3; font-size: 0.7rem; }
+      .ct-txt div { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .ct-act { display: flex; gap: 6px; }
+      .ct-act .btn { --bs-btn-padding-y: 0.2rem; --bs-btn-padding-x: 0.55rem; border-radius: 10px; }
+      .ct-empty { text-align: center; color: #b9afd3; font-size: 0.85rem; padding: 6px 0; }
+      .ct-hours { text-align: center; color: #b9afd3; font-size: 0.78rem; padding: 6px 20px 20px; position: relative; }
+      .ct-fab {
+        position: fixed; right: 18px; bottom: 18px; z-index: 1040; border: 0;
+        border-radius: 50px; padding: 12px 18px; color: #fff; font-weight: 600;
+        background: linear-gradient(135deg, #ec4899, #8b5cf6);
+        box-shadow: 0 8px 24px rgba(236, 72, 153, 0.5);
+        display: flex; align-items: center; gap: 8px; transition: transform 0.2s;
+      }
+      .ct-fab:hover { transform: translateY(-3px) scale(1.04); }
+      .ct-fab::after {
+        content: ''; position: absolute; inset: 0; border-radius: 50px;
+        box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.6); animation: ctPulse 2.4s infinite;
+        pointer-events: none;
+      }
+      @keyframes ctPulse {
+        70% { box-shadow: 0 0 0 16px rgba(236, 72, 153, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      window.onerror = function (msg, src, line, col) {
+        var d = document.createElement('div')
+        d.style.cssText =
+          'position:fixed;top:0;left:0;right:0;z-index:99999;background:#b91c1c;color:#fff;padding:8px 12px;font:13px monospace'
+        d.textContent = 'JS error: ' + msg + ' (line ' + line + ')'
+        ;(document.body || document.documentElement).appendChild(d)
+      }
+    </script>
+    <div class="container-fluid py-4 px-md-5">
+      <!-- Top Header -->
+      <div
+        class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2"
+      >
+        <div>
+          <h2 class="fw-bold m-0">
+            <i class="fa-solid fa-boxes-stacked me-2" style="color: #ec4899"></i
+            >ระบบจัดการ Tools
+          </h2>
+          <small class="text-muted"
+            >BTT Field Tool - ระบบบันทึกและจัดการเครื่องมือหน้างาน</small
+          >
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <select
+            class="form-select form-select-sm"
+            id="operatorSelect"
+            style="width: 200px"
+            title="ชื่อผู้ใช้งาน (บันทึกใน Log)"
+            onchange="onOperatorChange()"
+          >
+            <option value="">-- เลือกชื่อผู้ใช้งาน --</option>
+          </select>
+          <button
+            type="button"
+            class="btn btn-outline-danger btn-sm d-none"
+            id="btnDelOperator"
+            onclick="deleteSelectedOperator()"
+            title="ลบชื่อที่เลือกออกจากรายชื่อ"
+          >
+            <i class="fa-solid fa-user-minus me-1"></i> ลบชื่อ
+          </button>
+          <input
+            type="text"
+            class="form-control form-control-sm d-none"
+            id="operatorName"
+            style="width: 200px"
+            placeholder="พิมพ์ชื่อของคุณ"
+            oninput="saveOperator()"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();addOperatorName()}"
+          />
+          <button
+            type="button"
+            class="btn btn-success btn-sm"
+            id="btnAddOperator"
+            onclick="addOperatorName()"
+            title="บันทึกชื่อนี้เข้ารายชื่อ"
+          >
+            <i class="fa-solid fa-user-plus me-1"></i> เพิ่มชื่อ
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm"
+            onclick="openNamesModal()"
+            title="เพิ่ม / แก้ไข / ลบรายชื่อ"
+          >
+            <i class="fa-solid fa-users-gear me-1"></i> จัดการรายชื่อ
+          </button>
+          
+          <!-- ปุ่มลิงก์ไปยัง GitHub Source Code -->
+          <a
+            href="https://github.com/kxma-blazi/btt-Equipment"
+            target="_blank"
+            rel="noopener"
+            class="btn btn-outline-dark btn-sm"
+            title="ดู Source Code บน GitHub"
+          >
+            <i class="fa-brands fa-github me-1"></i> Source Code
+          </a>
+
+          <button
+            class="btn btn-outline-secondary btn-sm"
+            onclick="toggleDarkMode()"
+          >
+            <i class="fa-solid fa-moon me-1" id="darkIcon"></i> Dark Mode
+          </button>
+          <button class="btn btn-btt btn-sm" onclick="loadData()">
+            <i class="fa-solid fa-rotate me-1"></i> รีเฟรชข้อมูล
+          </button>
+        </div>
+      </div>
+
+      <div id="urlWarn" class="alert alert-warning d-none">
+        <b>ยังไม่ได้ตั้งลิงก์ระบบ</b> QR ตอนนี้เก็บแค่รหัส
+        กล้องมือถือจะไม่เปิดระบบ วางลิงก์ Web app (ลงท้าย /exec) แล้วกดบันทึก
+        <div class="input-group mt-2">
+          <input
+            type="text"
+            class="form-control"
+            id="appUrlInput"
+            placeholder="https://script.google.com/macros/s/.../exec"
+          />
+          <button
+            class="btn btn-btt"
+            type="button"
+            onclick="saveAppUrlFromInput()"
+          >
+            บันทึกลิงก์
+          </button>
+        </div>
+      </div>
+
+      <!-- Summary Dashboard Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+          <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <div class="text-muted small">อุปกรณ์ทั้งหมด</div>
+                <h3 class="fw-bold m-0" id="statTotal">0</h3>
+              </div>
+              <i class="fa-solid fa-cubes fa-2x text-primary"></i>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <div class="text-muted small">พร้อมใช้งาน</div>
+                <h3 class="fw-bold m-0 text-success" id="statAvailable">0</h3>
+              </div>
+              <i class="fa-solid fa-circle-check fa-2x text-success"></i>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <div class="text-muted small">กำลังถูกยืม</div>
+                <h3 class="fw-bold m-0 text-warning" id="statBorrowed">0</h3>
+              </div>
+              <i class="fa-solid fa-people-carry-box fa-2x text-warning"></i>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <div class="text-muted small">สต็อกต่ำ / ต้องสั่งเพิ่ม</div>
+                <h3 class="fw-bold m-0 text-danger" id="statLowStock">0</h3>
+              </div>
+              <i class="fa-solid fa-triangle-exclamation fa-2x text-danger"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <ul class="nav nav-pills mb-3" id="mainTab" role="tablist">
+        <li class="nav-item">
+          <button
+            class="nav-link active"
+            id="assets-tab"
+            data-bs-toggle="pill"
+            data-bs-target="#assets-pane"
+          >
+            <i class="fa-solid fa-list me-1"></i> ทะเบียนอุปกรณ์
+          </button>
+        </li>
+        <li class="nav-item">
+          <button
+            class="nav-link"
+            id="borrow-tab"
+            data-bs-toggle="pill"
+            data-bs-target="#borrow-pane"
+          >
+            <i class="fa-solid fa-right-left me-1"></i> ประวัติการเบิก-คืน
+          </button>
+        </li>
+        <li class="nav-item">
+          <button
+            class="nav-link"
+            id="logs-tab"
+            data-bs-toggle="pill"
+            data-bs-target="#logs-pane"
+          >
+            <i class="fa-solid fa-clock-rotate-left me-1"></i> Activity Logs
+          </button>
+        </li>
+        <li class="nav-item">
+          <button
+            class="nav-link"
+            id="audit-tab"
+            data-bs-toggle="pill"
+            data-bs-target="#audit-pane"
+          >
+            <i class="fa-solid fa-clipboard-check me-1"></i> ตรวจสอบข้อมูล
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content" id="mainTabContent">
+        <!-- Tab 1: Asset Management -->
+        <div class="tab-pane fade show active" id="assets-pane">
+          <div class="table-container">
+            <!-- Toolbar & Filter -->
+            <div class="row g-2 mb-3 align-items-center">
+              <div class="col-md-4">
+                <div class="input-group">
+                  <span class="input-group-text"
+                    ><i class="fa-solid fa-magnifying-glass"></i
+                  ></span>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="searchInput"
+                    placeholder="ค้นหา รหัส, ชื่ออุปกรณ์..."
+                    onkeyup="filterAssets()"
+                  />
+                </div>
+              </div>
+              <div class="col-md-3">
+                <select
+                  class="form-select"
+                  id="categoryFilter"
+                  onchange="filterAssets()"
+                >
+                  <option value="">-- ทุกหมวดหมู่ --</option>
+                </select>
+              </div>
+              <div
+                class="col-md-5 text-md-end d-flex gap-2 justify-content-md-end flex-wrap"
+              >
+                <button class="btn btn-btt" onclick="openAssetModal()">
+                  <i class="fa-solid fa-plus me-1"></i> เพิ่มอุปกรณ์
+                </button>
+                <button
+                  class="btn btn-outline-success"
+                  onclick="openBorrowModal()"
+                >
+                  <i class="fa-solid fa-cart-flatbed me-1"></i> เบิก/ยืม
+                  <span
+                    class="badge bg-success ms-1"
+                    id="cartBadge"
+                    style="display: none"
+                    >0</span
+                  >
+                </button>
+                <button
+                  class="btn btn-outline-dark"
+                  onclick="openBorrowModal(true)"
+                >
+                  <i class="fa-solid fa-qrcode me-1"></i> สแกนเตรียมเบิก
+                </button>
+                <button
+                  class="btn btn-outline-primary"
+                  onclick="printSelectedQRCodes()"
+                >
+                  <i class="fa-solid fa-print me-1"></i> พิมพ์ QR Code ที่เลือก
+                </button>
+              </div>
+            </div>
+
+            <!-- Asset Table -->
+            <div class="table-responsive">
+              <table class="table table-hover align-middle" id="assetTable">
+                <thead class="table-light">
+                  <tr>
+                    <th width="40">
+                      <input
+                        type="checkbox"
+                        id="selectAll"
+                        onchange="toggleSelectAll(this)"
+                      />
+                    </th>
+                    <th width="60">รูปภาพ</th>
+                    <th width="60">QR</th>
+                    <th>รหัส</th>
+                    <th>ชื่อรายการ</th>
+                    <th>หมวดหมู่</th>
+                    <th>สถานที่</th>
+                    <th class="text-center">BTT</th>
+                    <th class="text-center">TKE</th>
+                    <th class="text-center">รวม</th>
+                    <th class="text-center">สถานะ</th>
+                    <th class="text-center">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody id="assetTableBody">
+                  <tr>
+                    <td colspan="12" class="text-center py-4">
+                      กำลังโหลดข้อมูล...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Borrow History -->
+        <div class="tab-pane fade" id="borrow-pane">
+          <div class="table-container">
+            <h5 class="fw-bold mb-3">
+              <i class="fa-solid fa-file-invoice me-2"></i
+              >ประวัติรายการเบิก-คืนอุปกรณ์
+            </h5>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>ลำดับ</th>
+                    <th>รหัสอุปกรณ์</th>
+                    <th>โครงการ</th>
+                    <th>จำนวน</th>
+                    <th>ผู้เบิก</th>
+                    <th>สถานที่</th>
+                    <th>วันที่เบิก</th>
+                    <th>วันที่คืน</th>
+                    <th>ผู้คืน</th>
+                    <th>สถานะ</th>
+                    <th>การทำงาน</th>
+                  </tr>
+                </thead>
+                <tbody id="borrowTableBody">
+                  <tr>
+                    <td colspan="11" class="text-center py-4">
+                      กำลังโหลดข้อมูล...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Data audit -->
+        <div class="tab-pane fade" id="audit-pane">
+          <div class="table-container">
+            <h5 class="fw-bold mb-2">
+              <i class="fa-solid fa-clipboard-check me-2"></i
+              >ตรวจสอบข้อมูลที่นำเข้า
+            </h5>
+            <div class="text-muted small mb-3" id="auditSummary"></div>
+            <div class="row g-2 mb-3 align-items-center">
+              <div class="col-md-4">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="auditSearch"
+                  placeholder="ค้นหา รหัส, ชื่อรายการ, รายละเอียด..."
+                  oninput="renderAudit()"
+                />
+              </div>
+              <div class="col-md-4">
+                <select
+                  class="form-select"
+                  id="auditFilter"
+                  onchange="renderAudit()"
+                >
+                  <option value="">-- ทุกประเด็น --</option>
+                </select>
+              </div>
+              <div class="col-md-4 text-md-end">
+                <button class="btn btn-btt" onclick="openAuditModal()">
+                  <i class="fa-solid fa-plus me-1"></i> เพิ่มรายการตรวจสอบ
+                </button>
+              </div>
+            </div>
+            <datalist id="auditIssueList"></datalist>
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>ประเด็น</th>
+                    <th>ชีตต้นทาง</th>
+                    <th>รหัส</th>
+                    <th>ชื่อรายการ</th>
+                    <th>รายละเอียด</th>
+                    <th class="text-center">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody id="auditTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Activity Logs -->
+        <div class="tab-pane fade" id="logs-pane">
+          <div class="table-container">
+            <h5 class="fw-bold mb-3">
+              <i class="fa-solid fa-list-check me-2"></i>บันทึกกิจกรรมในระบบ
+            </h5>
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>#</th>
+                    <th>วัน-เวลา</th>
+                    <th>ผู้ใช้งาน</th>
+                    <th>กิจกรรม</th>
+                    <th>รายละเอียด</th>
+                  </tr>
+                </thead>
+                <tbody id="logTableBody">
+                  <tr>
+                    <td colspan="5" class="text-center py-4">
+                      กำลังโหลดข้อมูล...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Add / Edit Asset -->
+    <div class="modal fade" id="assetModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold" id="assetModalTitle">
+              <i class="fa-solid fa-box-archive me-2"></i>บันทึกข้อมูลอุปกรณ์
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <form id="assetForm" onsubmit="handleAssetSubmit(event)">
+            <div class="modal-body">
+              <input type="hidden" id="oldAssetId" name="oldAssetId" />
+              <input type="hidden" id="assetImageUrl" name="assetImageUrl" />
+
+              <div class="row g-3">
+                <div class="col-md-4 text-center">
+                  <label class="form-label d-block fw-semibold"
+                    >รูปภาพอุปกรณ์</label
+                  >
+                  <img
+                    id="imagePreview"
+                    onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22%3E%3Crect width=%22150%22 height=%22150%22 fill=%22%23e5e7eb%22/%3E%3Ctext x=%2275%22 y=%2280%22 font-size=%2214%22 text-anchor=%22middle%22 fill=%22%236b7280%22%3ENo Image%3C/text%3E%3C/svg%3E'"
+                    src="https://placehold.co/150x150?text=No+Image"
+                    class="img-fluid rounded mb-2 border"
+                    style="max-height: 160px; object-fit: cover"
+                  />
+                  <input
+                    type="file"
+                    id="imageInput"
+                    class="form-control form-control-sm"
+                    accept="image/*"
+                    onchange="handleImageUpload(this)"
+                  />
+                  <small class="text-muted d-block mt-1"
+                    >รองรับภาพจากกล้อง / เลือกไฟล์ภาพ</small
+                  >
+                </div>
+                <div class="col-md-8">
+                  <div class="row g-2">
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold"
+                        >รหัสอุปกรณ์ *</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="assetId"
+                        name="assetId"
+                        required
+                        placeholder="เช่น TO-001"
+                      />
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold">ชื่อรายการ *</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="assetName"
+                        name="assetName"
+                        required
+                        placeholder="เช่น สว่านไร้สาย"
+                      />
+                    </div>
+
+                    <!-- หมวดหมู่ -->
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold">หมวดหมู่</label>
+                      <div class="input-group">
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="assetCategory"
+                          name="assetCategory"
+                          autocomplete="off"
+                          placeholder="เลือกหรือพิมพ์หมวดหมู่"
+                        />
+                        <button
+                          class="btn btn-outline-secondary dropdown-toggle"
+                          type="button"
+                          data-bs-toggle="dropdown"
+                          aria-expanded="false"
+                          onclick="populateDropdown('category')"
+                        ></button>
+                        <ul
+                          class="dropdown-menu dropdown-menu-end"
+                          id="catDropdownMenu"
+                          style="max-height: 200px; overflow-y: auto"
+                        ></ul>
+                      </div>
+                    </div>
+
+                    <!-- สถานที่จัดเก็บ -->
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold"
+                        >สถานที่จัดเก็บ</label
+                      >
+                      <div class="input-group">
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="assetLocation"
+                          name="assetLocation"
+                          autocomplete="off"
+                          placeholder="เลือกหรือพิมพ์สถานที่"
+                        />
+                        <button
+                          class="btn btn-outline-secondary dropdown-toggle"
+                          type="button"
+                          data-bs-toggle="dropdown"
+                          aria-expanded="false"
+                          onclick="populateDropdown('location')"
+                        ></button>
+                        <ul
+                          class="dropdown-menu dropdown-menu-end"
+                          id="locDropdownMenu"
+                          style="max-height: 200px; overflow-y: auto"
+                        ></ul>
+                      </div>
+                    </div>
+
+                    <div class="col-md-4">
+                      <label class="form-label">จำนวน BTT</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="assetBtt"
+                        name="assetBtt"
+                        value="0"
+                        min="0"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">จำนวน TKE</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="assetTke"
+                        name="assetTke"
+                        value="0"
+                        min="0"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Stock Min</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="assetMin"
+                        name="assetMin"
+                        value="0"
+                        min="0"
+                      />
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">ราคา/หน่วย (บาท)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        class="form-control"
+                        id="assetPrice"
+                        name="assetPrice"
+                        value="0"
+                      />
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">สถานะ</label>
+                      <select
+                        class="form-select"
+                        id="assetStatus"
+                        name="assetStatus"
+                      >
+                        <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
+                        <option value="ถูกยืม">ถูกยืม</option>
+                        <option value="ชำรุด">ชำรุด</option>
+                        <option value="ส่งซ่อม">ส่งซ่อม</option>
+                        <option value="สูญหาย">สูญหาย</option>
+                      </select>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label">หมายเหตุ</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="assetRemark"
+                        name="assetRemark"
+                        placeholder="ระบุรายละเอียดเพิ่มเติม (ถ้ามี)"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                ยกเลิก
+              </button>
+              <button type="submit" class="btn btn-btt" id="btnSaveAsset">
+                บันทึกข้อมูล
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Borrow Item Form -->
+    <div class="modal fade" id="borrowModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold">
+              <i class="fa-solid fa-cart-flatbed me-2"></i>ฟอร์มเบิก/ยืมอุปกรณ์
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              onclick="stopQrScanner()"
+            ></button>
+          </div>
+          <form id="borrowForm" onsubmit="handleBorrowSubmit(event)">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label fw-semibold">ชื่อผู้เบิก *</label>
+                <input
+                  type="text"
+                  class="form-control form-control-sm mb-2"
+                  id="borrowerSearch"
+                  placeholder="ค้นหาชื่อ..."
+                  oninput="filterBorrowerList()"
+                />
+                <div
+                  class="list-group"
+                  id="borrowerList"
+                  style="max-height: 220px; overflow-y: auto"
+                ></div>
+                <input
+                  type="text"
+                  class="form-control mt-2 d-none"
+                  id="borrowerName"
+                  placeholder="พิมพ์ชื่อ-นามสกุล ผู้เบิก (ไม่มีในรายชื่อ)"
+                />
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-success mt-2"
+                  id="btnAddBorrower"
+                  onclick="addBorrowerFromForm()"
+                >
+                  <i class="fa-solid fa-user-plus me-1"></i> เพิ่มชื่อนี้เข้ารายชื่อ
+                </button>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">ชื่อโครงการ / หน้างาน</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="projectName"
+                  placeholder="เช่น โครงการ BTT-Tower"
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">สถานที่นำไปใช้</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="locationAddress"
+                  placeholder="ระบุสถานที่ติดตั้ง/ใช้งาน"
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold"
+                  >เลือกอุปกรณ์ที่ต้องการเบิก *</label
+                >
+                <div class="input-group mb-2">
+                  <select class="form-select" id="borrowAssetSelect">
+                    <option value="">-- เลือกอุปกรณ์ --</option>
+                  </select>
+                  <button
+                    type="button"
+                    class="btn btn-outline-success"
+                    onclick="addFromSelect()"
+                  >
+                    <i class="fa-solid fa-plus"></i> เพิ่ม
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-primary"
+                    onclick="startQrScanner()"
+                  >
+                    <i class="fa-solid fa-camera me-1"></i> สแกน QR
+                  </button>
+                </div>
+
+                <!-- พื้นที่แสดงกล้องสแกน -->
+                <div
+                  id="qr-reader"
+                  style="display: none; width: 100%"
+                  class="mb-2 border rounded p-1 bg-light"
+                ></div>
+                <button
+                  type="button"
+                  id="btnStopScanner"
+                  class="btn btn-sm btn-danger w-100 mb-2"
+                  style="display: none"
+                  onclick="stopQrScanner()"
+                >
+                  <i class="fa-solid fa-stop me-1"></i> ปิดกล้องสแกน
+                </button>
+              </div>
+              <div class="mb-3">
+                <div
+                  class="d-flex justify-content-between align-items-center mb-1"
+                >
+                  <label class="form-label fw-semibold m-0"
+                    >รายการที่เตรียมเบิก (<span id="cartCount">0</span>)</label
+                  >
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-link text-danger p-0"
+                    onclick="clearCart()"
+                  >
+                    ล้างทั้งหมด
+                  </button>
+                </div>
+                <div id="cartList" class="list-group"></div>
+                <small class="text-muted"
+                  >สแกน QR ต่อเนื่องได้เลย
+                  รายการจะถูกเก็บไว้แม้ปิดหน้าต่างนี้</small
+                >
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+                onclick="stopQrScanner()"
+              >
+                ยกเลิก
+              </button>
+              <button type="submit" class="btn btn-success" id="btnSaveBorrow">
+                ยืนยันการเบิก
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating contact button -->
+    <button
+      type="button"
+      class="ct-fab"
+      onclick="openContactModal()"
+      title="ติดต่อผู้ดูแลระบบ"
+    >
+      <i class="fa-brands fa-line fs-5"></i> ติดต่อ
+    </button>
+
+    <!-- Modal: Contact popup -->
+    <div class="modal fade" id="contactModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered" style="max-width: 400px">
+        <div class="modal-content ct-card">
+          <button
+            type="button"
+            class="btn-close ct-close"
+            data-bs-dismiss="modal"
+          ></button>
+          <div class="ct-hero">
+            <div class="ct-avatar"><i class="fa-solid fa-headset"></i></div>
+            <div class="ct-name" id="ctName"></div>
+            <div class="ct-title" id="ctTitle"></div>
+            <div class="ct-note" id="ctNote"></div>
+          </div>
+          <div class="ct-qrwrap">
+            <div class="ct-qr" id="ctQr"></div>
+            <div class="ct-scan" id="ctScan">
+              <i class="fa-brands fa-line"></i> สแกนเพื่อแอดไลน์
+            </div>
+          </div>
+          <div class="ct-rows" id="ctRows"></div>
+          <div class="ct-hours" id="ctHours"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Manage names -->
+    <div class="modal fade" id="namesModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold">
+              <i class="fa-solid fa-users-gear me-2"></i>จัดการรายชื่อผู้เบิก /
+              ผู้ใช้งาน
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="input-group mb-2">
+              <input
+                type="text"
+                class="form-control"
+                id="newNameInput"
+                placeholder="พิมพ์ชื่อใหม่"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();addNameFromInput()}"
+              />
+              <button
+                class="btn btn-btt"
+                type="button"
+                onclick="addNameFromInput()"
+              >
+                <i class="fa-solid fa-plus me-1"></i> เพิ่มชื่อ
+              </button>
+            </div>
+            <input
+              type="text"
+              class="form-control form-control-sm mb-2"
+              id="nameManageSearch"
+              placeholder="ค้นหาชื่อ..."
+              oninput="renderNamesManager()"
+            />
+            <div class="text-muted small mb-2" id="nameManageCount"></div>
+            <div
+              class="list-group"
+              id="namesManageList"
+              style="max-height: 360px; overflow-y: auto"
+            ></div>
+            <small class="text-muted d-block mt-2"
+              >ลบชื่อ = ลบออกจากชีต "รายชื่อผู้เบิก" ทันที
+              (ประวัติเบิก-คืนเดิมยังอยู่) ถ้าชื่อนั้นยังมีของยืมค้างอยู่จะลบไม่ได้</small
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Add / Edit audit row -->
+    <div class="modal fade" id="auditModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold" id="auditModalTitle">
+              แก้ไขรายการตรวจสอบ
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <form id="auditForm" onsubmit="handleAuditSubmit(event)">
+            <div class="modal-body">
+              <input type="hidden" id="auditRow" />
+              <input type="hidden" id="auditExpectCode" />
+              <input type="hidden" id="auditExpectName" />
+              <div class="mb-2">
+                <label class="form-label fw-semibold">ประเด็น</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="auditIssue"
+                  list="auditIssueList"
+                  autocomplete="off"
+                />
+              </div>
+              <div class="row g-2 mb-2">
+                <div class="col-6">
+                  <label class="form-label fw-semibold">ชีตต้นทาง</label>
+                  <input type="text" class="form-control" id="auditSource" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-semibold">รหัส</label>
+                  <input type="text" class="form-control" id="auditCode" />
+                </div>
+              </div>
+              <div class="mb-2">
+                <label class="form-label fw-semibold">ชื่อรายการ</label>
+                <input type="text" class="form-control" id="auditName" />
+              </div>
+              <div class="mb-2">
+                <label class="form-label fw-semibold">รายละเอียด</label>
+                <textarea
+                  class="form-control"
+                  id="auditDetail"
+                  rows="3"
+                ></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                ยกเลิก
+              </button>
+              <button type="submit" class="btn btn-btt">บันทึก</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      let globalAssets = []
+      let globalBorrows = []
+      let selectedCodes = new Set()
+      let assetModal, borrowModal
+      let html5QrCode = null
+      let appUrl = ''
+      let pendingCode = ''
+      let dataLoaded = false
+      let categoriesList = []
+      let locationsList = []
+      let borrowersList = []
+      const BORROWER_OTHER = '__other__'
+
+      // รายชื่อแบบติ๊กเลือก (เลือกได้ 1 ชื่อ) ใช้ทั้งฟอร์มเบิกและหน้าต่างคืน
+      function nameChoicesHtml(names, checked, withDel) {
+        var h = ''
+        names.forEach(function (n) {
+          h +=
+            '<label class="list-group-item d-flex align-items-center gap-2 name-row text-start" data-name="' +
+            escapeHtml(n.toLowerCase()) +
+            '"><input class="form-check-input m-0 name-tick" type="checkbox" value="' +
+            escapeHtml(n) +
+            '"' +
+            (n === checked ? ' checked' : '') +
+            '> <span>' +
+            escapeHtml(n) +
+            '</span>' +
+            (withDel
+              ? '<button type="button" class="btn btn-sm btn-outline-danger ms-auto py-0 px-2 name-del" data-del-name="' +
+                escapeHtml(n) +
+                '" title="ลบชื่อนี้"><i class="fa-solid fa-trash"></i></button>'
+              : '') +
+            '</label>'
+        })
+        return h
+      }
+      // ติ๊กอันใหม่ -> ยกเลิกอันอื่น (เลือกได้ชื่อเดียว)
+      function singleTick(container, onChange) {
+        container.addEventListener('change', function (e) {
+          var t = e.target
+          if (!t.classList.contains('name-tick')) return
+          if (t.checked)
+            container.querySelectorAll('.name-tick').forEach(function (x) {
+              if (x !== t) x.checked = false
+            })
+          if (onChange) onChange()
+        })
+      }
+
+      function renderBorrowerOptions() {
+        var box = document.getElementById('borrowerList')
+        var cur = pendingBorrowerTick || getBorrowerTick()
+        pendingBorrowerTick = ''
+        box.innerHTML =
+          nameChoicesHtml(borrowersList, cur, true) +
+          '<label class="list-group-item d-flex align-items-center gap-2 other-row text-start"><input class="form-check-input m-0 name-tick" type="checkbox" value="' +
+          BORROWER_OTHER +
+          '"' +
+          (cur === BORROWER_OTHER ? ' checked' : '') +
+          '> <span>➕ ไม่มีในรายชื่อ (พิมพ์ชื่อเอง)</span></label>'
+        filterBorrowerList()
+        onBorrowerChange()
+      }
+
+      function getBorrowerTick() {
+        var t = document.querySelector('#borrowerList .name-tick:checked')
+        return t ? t.value : ''
+      }
+
+      function filterBorrowerList() {
+        var q = document
+          .getElementById('borrowerSearch')
+          .value.trim()
+          .toLowerCase()
+        document
+          .querySelectorAll('#borrowerList .name-row')
+          .forEach(function (r) {
+            r.classList.toggle('d-none', !!q && r.dataset.name.indexOf(q) < 0)
+          })
+      }
+
+      function onBorrowerChange() {
+        var other = getBorrowerTick() === BORROWER_OTHER
+        var inp = document.getElementById('borrowerName')
+        inp.classList.toggle('d-none', !other)
+        if (!other) inp.value = ''
+        else inp.focus()
+      }
+
+      function getBorrowerName() {
+        var v = getBorrowerTick()
+        return v === BORROWER_OTHER
+          ? document.getElementById('borrowerName').value.trim()
+          : v
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        assetModal = new bootstrap.Modal(document.getElementById('assetModal'))
+        borrowModal = new bootstrap.Modal(
+          document.getElementById('borrowModal')
+        )
+        initOperator()
+        singleTick(document.getElementById('borrowerList'), onBorrowerChange)
+        bindTableActions()
+        bindCart()
+        loadCart()
+        renderCart()
+        loadData()
+        // สแกนด้วยกล้องมือถือ -> เปิดลิงก์ ?code=รหัส
+        try {
+          google.script.url.getLocation(function (loc) {
+            var c = loc && loc.parameter && loc.parameter.code
+            if (c) {
+              pendingCode = Array.isArray(c) ? c[0] : c
+              processPendingCode()
+            }
+          })
+        } catch (e) {}
+      })
+
+      // ใช้ data-attribute + event delegation แทน inline onclick (กัน XSS / อักขระพิเศษ)
+      function bindTableActions() {
+        const ab = document.getElementById('assetTableBody')
+        ab.addEventListener('click', e => {
+          const t = e.target.closest('[data-act]')
+          if (!t) return
+          const code = t.dataset.code
+          if (t.dataset.act === 'edit') editAsset(code)
+          else if (t.dataset.act === 'del') deleteAsset(code)
+          else if (t.dataset.act === 'ret') returnFromAsset(code)
+          else if (t.dataset.act === 'img') showImageModal(t.dataset.img)
+          else if (t.dataset.act === 'qr') showQRModal(code, t.dataset.qr)
+        })
+        ab.addEventListener('change', e => {
+          if (e.target.classList.contains('asset-checkbox'))
+            toggleSelectCode(e.target.value, e.target.checked)
+        })
+        document
+          .getElementById('borrowTableBody')
+          .addEventListener('click', e => {
+            const t = e.target.closest('[data-act="return"]')
+            if (t) returnAssetItem(t.dataset.code, t.dataset.row)
+          })
+        bindExtraActions()
+      }
+
+      const OP_OTHER = '__other__'
+      function renderOperatorOptions() {
+        var sel = document.getElementById('operatorSelect')
+        var inp = document.getElementById('operatorName')
+        var name = ''
+        if (sel.dataset.ready) name = getOperator()
+        else {
+          try {
+            name = localStorage.getItem('btt_operator') || ''
+          } catch (e) {}
+        }
+        sel.dataset.ready = '1'
+        var html = '<option value="">-- เลือกชื่อผู้ใช้งาน --</option>'
+        borrowersList.forEach(function (n) {
+          html += '<option value="' + escapeHtml(n) + '">' + escapeHtml(n) + '</option>'
+        })
+        html += '<option value="' + OP_OTHER + '">➕ ไม่มีในรายชื่อ (พิมพ์เอง)</option>'
+        sel.innerHTML = html
+        if (name && borrowersList.indexOf(name) >= 0) sel.value = name
+        else if (name) {
+          sel.value = OP_OTHER
+          inp.value = name
+        } else sel.value = ''
+        inp.classList.toggle('d-none', sel.value !== OP_OTHER)
+        syncOperatorDelBtn()
+      }
+      function onOperatorChange() {
+        syncOperatorDelBtn()
+        var other = document.getElementById('operatorSelect').value === OP_OTHER
+        var inp = document.getElementById('operatorName')
+        inp.classList.toggle('d-none', !other)
+        if (other) inp.focus()
+        else inp.value = ''
+        saveOperator()
+      }
+      function saveOperator() {
+        try {
+          localStorage.setItem('btt_operator', getOperator())
+        } catch (e) {}
+      }
+      function initOperator() {
+        renderOperatorOptions()
+      }
+      function getOperator() {
+        var v = document.getElementById('operatorSelect').value
+        return v === OP_OTHER
+          ? document.getElementById('operatorName').value.trim()
+          : v
+      }
+
+      function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode')
+        const isDark = document.body.classList.contains('dark-mode')
+        document.getElementById('darkIcon').className = isDark
+          ? 'fa-solid fa-sun me-1'
+          : 'fa-solid fa-moon me-1'
+      }
+
+      function loadData() {
+        Swal.fire({
+          title: 'กำลังโหลดข้อมูล...',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading()
+          }
+        })
+
+        google.script.run
+          .withSuccessHandler(onDataLoaded)
+          .withFailureHandler(onError)
+          .getInitialData()
+      }
+
+      let globalAudit = []
+      function onDataLoaded(res) {
+        Swal.close()
+        if (!res || !res.success) {
+          Swal.fire(
+            'ข้อผิดพลาด',
+            res ? res.message : 'ไม่สามารถดึงข้อมูลได้',
+            'error'
+          )
+          return
+        }
+        globalAssets = res.assets || []
+        globalBorrows = res.borrows || []
+        globalAudit = res.audit || []
+        appUrl = res.appUrl || ''
+        document.getElementById('urlWarn').classList.toggle('d-none', !!appUrl)
+        categoriesList = res.categories || []
+        borrowersList = res.borrowers || []
+        renderBorrowerOptions()
+        renderOperatorOptions()
+        locationsList = [
+          ...new Set([
+            ...(res.locations || []),
+            ...globalAssets.map(a => a[6]).filter(v => v && v !== '-')
+          ])
+        ]
+        const sm = res.summary || {}
+        document.getElementById('statTotal').innerText = sm.total || 0
+        document.getElementById('statAvailable').innerText = sm.available || 0
+        document.getElementById('statBorrowed').innerText = sm.borrowed || 0
+        document.getElementById('statLowStock').innerText =
+          sm.lowStockCount || 0
+
+        const cats = res.categories || []
+        const catSelect = document.getElementById('categoryFilter')
+        catSelect.innerHTML =
+          '<option value="">-- ทุกหมวดหมู่ --</option>' +
+          cats
+            .map(
+              c =>
+                '<option value="' +
+                escapeHtml(c) +
+                '">' +
+                escapeHtml(c) +
+                '</option>'
+            )
+            .join('')
+
+        const borrowSelect = document.getElementById('borrowAssetSelect')
+        borrowSelect.innerHTML = '<option value="">-- เลือกอุปกรณ์ --</option>'
+        globalAssets.forEach(item => {
+          if (item[13] === 'พร้อมใช้งาน' && Number(item[12]) > 0) {
+            borrowSelect.innerHTML +=
+              '<option value="' +
+              escapeHtml(item[3]) +
+              '">[' +
+              escapeHtml(item[3]) +
+              '] ' +
+              escapeHtml(item[4]) +
+              ' (คงเหลือ: ' +
+              item[12] +
+              ')</option>'
+          }
+        })
+
+        const issues = [...new Set(globalAudit.map(r => r[0]))]
+        const af = document.getElementById('auditFilter')
+        const cur = af.value
+        af.innerHTML =
+          '<option value="">-- ทุกประเด็น --</option>' +
+          issues
+            .map(
+              i =>
+                '<option value="' +
+                escapeHtml(i) +
+                '">' +
+                escapeHtml(i) +
+                '</option>'
+            )
+            .join('')
+        af.value = issues.includes(cur) ? cur : ''
+
+        renderAssetTable(globalAssets)
+        renderBorrowTable(globalBorrows)
+        renderLogTable(res.logs || [])
+        sanitizeCart()
+        dataLoaded = true
+        processPendingCode()
+        renderAudit()
+        renderNamesManager()
+        renderContact(res.contact)
+      }
+
+      let pendingAuditRow = ''
+      let renamingName = ''
+      const normNm = s =>
+        String(s || '')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .toLowerCase()
+
+      function reloadThen(msg) {
+        Swal.fire({
+          title: 'กำลังโหลดข้อมูล...',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading()
+        })
+        google.script.run
+          .withSuccessHandler(r => {
+            onDataLoaded(r)
+            if (r && r.success && msg) toast('success', msg)
+          })
+          .withFailureHandler(onError)
+          .getInitialData()
+      }
+
+      // ---------- ตรวจสอบข้อมูลที่นำเข้า (แก้ไข / ลบ / เพิ่มเข้าทะเบียน) ----------
+      function auditByRow(row) {
+        return globalAudit.find(r => String(r[5]) === String(row))
+      }
+
+      function renderAudit() {
+        const f = document.getElementById('auditFilter').value
+        const q = (document.getElementById('auditSearch').value || '')
+          .trim()
+          .toLowerCase()
+        const rows = globalAudit.filter(r => {
+          if (f && r[0] !== f) return false
+          return !q || r.slice(0, 5).join(' ').toLowerCase().includes(q)
+        })
+        const pending = globalAssets.filter(a => /^NEW-/i.test(a[3])).length
+        document.getElementById('auditSummary').innerText =
+          'รายการในรายงาน ' +
+          globalAudit.length +
+          (rows.length !== globalAudit.length
+            ? ' (แสดง ' + rows.length + ')'
+            : '') +
+          ' | ในทะเบียนที่ยังใช้รหัสชั่วคราว (NEW-) ' +
+          pending +
+          ' รายการ'
+        document.getElementById('auditIssueList').innerHTML = [
+          ...new Set(globalAudit.map(r => r[0]).filter(Boolean))
+        ]
+          .map(i => '<option value="' + escapeHtml(i) + '">')
+          .join('')
+        const tb = document.getElementById('auditTableBody')
+        if (!rows.length) {
+          tb.innerHTML =
+            '<tr><td colspan="6" class="text-center py-4 text-muted">ไม่มีข้อมูล</td></tr>'
+          return
+        }
+        tb.innerHTML = rows
+          .map(r => {
+            const code = String(r[2] || '').trim()
+            const exists = code && !!assetByCode(code)
+            const rid = escapeHtml(r[5])
+            const btnAsset = exists
+              ? '<button class="btn btn-sm btn-outline-primary me-1" data-act="asset" data-code="' +
+                escapeHtml(code) +
+                '" title="แก้ไขอุปกรณ์ในทะเบียน"><i class="fa-solid fa-screwdriver-wrench"></i></button>'
+              : '<button class="btn btn-sm btn-outline-success me-1" data-act="create" data-row="' +
+                rid +
+                '" title="เพิ่มเข้าทะเบียนอุปกรณ์"><i class="fa-solid fa-circle-plus"></i></button>'
+            return (
+              '<tr><td>' +
+              escapeHtml(r[0]) +
+              '</td><td>' +
+              escapeHtml(r[1]) +
+              '</td><td class="fw-bold">' +
+              escapeHtml(r[2]) +
+              '</td><td>' +
+              escapeHtml(r[3]) +
+              '</td><td><small>' +
+              escapeHtml(r[4]) +
+              '</small></td><td class="text-nowrap text-center">' +
+              btnAsset +
+              '<button class="btn btn-sm btn-outline-secondary me-1" data-act="auditEdit" data-row="' +
+              rid +
+              '" title="แก้ไขรายการนี้"><i class="fa-solid fa-pen"></i></button>' +
+              '<button class="btn btn-sm btn-outline-danger" data-act="auditDel" data-row="' +
+              rid +
+              '" title="ลบรายการนี้"><i class="fa-solid fa-trash"></i></button>' +
+              '</td></tr>'
+            )
+          })
+          .join('')
+      }
+
+      function openAuditModal(row) {
+        const r = row ? auditByRow(row) : null
+        const set = (id, v) => (document.getElementById(id).value = v || '')
+        set('auditRow', r ? r[5] : '')
+        set('auditExpectCode', r ? r[2] : '')
+        set('auditExpectName', r ? r[3] : '')
+        set('auditIssue', r ? r[0] : '')
+        set('auditSource', r ? r[1] : '')
+        set('auditCode', r ? r[2] : '')
+        set('auditName', r ? r[3] : '')
+        set('auditDetail', r ? r[4] : '')
+        document.getElementById('auditModalTitle').innerText = r
+          ? 'แก้ไขรายการตรวจสอบ'
+          : 'เพิ่มรายการตรวจสอบ'
+        bootstrap.Modal.getOrCreateInstance(
+          document.getElementById('auditModal')
+        ).show()
+      }
+
+      function handleAuditSubmit(e) {
+        e.preventDefault()
+        const v = id => document.getElementById(id).value
+        const p = {
+          row: v('auditRow'),
+          expectCode: v('auditExpectCode'),
+          expectName: v('auditExpectName'),
+          issue: v('auditIssue'),
+          source: v('auditSource'),
+          code: v('auditCode'),
+          name: v('auditName'),
+          detail: v('auditDetail')
+        }
+        Swal.fire({
+          title: 'กำลังบันทึก...',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading()
+        })
+        const run = google.script.run
+          .withSuccessHandler(res => {
+            if (res && res.success) {
+              bootstrap.Modal.getOrCreateInstance(
+                document.getElementById('auditModal')
+              ).hide()
+              reloadThen(res.message)
+            } else {
+              Swal.close()
+              Swal.fire('ข้อผิดพลาด', res ? res.message : 'บันทึกไม่สำเร็จ', 'error')
+            }
+          })
+          .withFailureHandler(onError)
+        if (p.row) run.updateAuditRow(p, getOperator())
+        else run.addAuditRow(p, getOperator())
+      }
+
+      function deleteAuditItem(row) {
+        const r = auditByRow(row)
+        if (!r) return
+        Swal.fire({
+          title: 'ลบรายการตรวจสอบ?',
+          html:
+            '<b>' +
+            escapeHtml(r[2] || '-') +
+            '</b> ' +
+            escapeHtml(r[3] || '') +
+            '<br><small class="text-muted">ลบเฉพาะรายการในรายงานตรวจสอบ ไม่ลบอุปกรณ์ในทะเบียน</small>',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'ลบรายการ',
+          cancelButtonText: 'ยกเลิก',
+          confirmButtonColor: '#dc3545'
+        }).then(res => {
+          if (!res.isConfirmed) return
+          Swal.fire({
+            title: 'กำลังลบ...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+          })
+          google.script.run
+            .withSuccessHandler(out => {
+              if (out && out.success) reloadThen(out.message)
+              else {
+                Swal.close()
+                Swal.fire('ข้อผิดพลาด', out ? out.message : 'ลบไม่สำเร็จ', 'error')
+              }
+            })
+            .withFailureHandler(onError)
+            .deleteAuditRow(r[5], r[2], r[3], getOperator())
+        })
+      }
+
+      // เปิดฟอร์มเพิ่มอุปกรณ์ โดยเติมรหัส/ชื่อจากรายการตรวจสอบให้
+      function createAssetFromAudit(row) {
+        const r = auditByRow(row)
+        if (!r) return
+        openAssetModal()
+        pendingAuditRow = String(r[5])
+        document.getElementById('assetId').value = String(r[2] || '').trim()
+        document.getElementById('assetName').value = r[3] || ''
+        document.getElementById('assetRemark').value = r[1]
+          ? 'นำเข้าจากชีต ' + r[1]
+          : ''
+      }
+
+      // ---------- จัดการรายชื่อ ----------
+      function openNamesModal() {
+        renamingName = ''
+        document.getElementById('newNameInput').value = ''
+        document.getElementById('nameManageSearch').value = ''
+        renderNamesManager()
+        bootstrap.Modal.getOrCreateInstance(
+          document.getElementById('namesModal')
+        ).show()
+      }
+
+      function activeCountByName(name) {
+        return globalBorrows.filter(
+          r => r[8] === 'กำลังยืม' && normNm(r[6]) === normNm(name)
+        ).length
+      }
+
+      function renderNamesManager() {
+        const box = document.getElementById('namesManageList')
+        if (!box) return
+        const q = document
+          .getElementById('nameManageSearch')
+          .value.trim()
+          .toLowerCase()
+        const names = borrowersList.filter(
+          n => !q || n.toLowerCase().includes(q)
+        )
+        document.getElementById('nameManageCount').innerText =
+          'ทั้งหมด ' +
+          borrowersList.length +
+          ' ชื่อ' +
+          (q ? ' (พบ ' + names.length + ')' : '')
+        if (!names.length) {
+          box.innerHTML =
+            '<div class="list-group-item text-center text-muted small">ไม่พบชื่อ</div>'
+          return
+        }
+        box.innerHTML = names
+          .map(n => {
+            const en = escapeHtml(n)
+            if (n === renamingName)
+              return (
+                '<div class="list-group-item d-flex align-items-center gap-2">' +
+                '<input type="text" class="form-control form-control-sm" id="renameInput" value="' +
+                en +
+                '">' +
+                '<button type="button" class="btn btn-sm btn-btt" data-name-act="save" data-name="' +
+                en +
+                '" title="บันทึก"><i class="fa-solid fa-check"></i></button>' +
+                '<button type="button" class="btn btn-sm btn-outline-secondary" data-name-act="cancel" title="ยกเลิก"><i class="fa-solid fa-xmark"></i></button>' +
+                '</div>'
+              )
+            const cnt = activeCountByName(n)
+            return (
+              '<div class="list-group-item d-flex align-items-center gap-2">' +
+              '<div class="flex-grow-1"><span>' +
+              en +
+              '</span>' +
+              (cnt
+                ? ' <span class="badge bg-warning text-dark ms-1">ยืมอยู่ ' +
+                  cnt +
+                  '</span>'
+                : '') +
+              '</div>' +
+              '<button type="button" class="btn btn-sm btn-outline-primary" data-name-act="rename" data-name="' +
+              en +
+              '" title="แก้ชื่อ"><i class="fa-solid fa-pen"></i></button>' +
+              '<button type="button" class="btn btn-sm btn-outline-danger" data-name-act="del" data-name="' +
+              en +
+              '" title="ลบชื่อ"><i class="fa-solid fa-trash"></i></button>' +
+              '</div>'
+            )
+          })
+          .join('')
+      }
+
+      function nameCall(fn, args, after) {
+        Swal.fire({
+          title: 'กำลังบันทึก...',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading()
+        })
+        const run = google.script.run
+          .withSuccessHandler(res => {
+            if (res && res.success) {
+              if (after) after()
+              reloadThen(res.message)
+            } else {
+              Swal.close()
+              Swal.fire('ข้อผิดพลาด', res ? res.message : 'ไม่สำเร็จ', 'error')
+            }
+          })
+          .withFailureHandler(onError)
+        run[fn](...args)
+      }
+
+      function addNameFromInput() {
+        const inp = document.getElementById('newNameInput')
+        const name = inp.value.trim()
+        if (!name) {
+          toast('warning', 'กรุณาพิมพ์ชื่อ')
+          return
+        }
+        nameCall('addBorrowerName', [name, getOperator()], () => {
+          inp.value = ''
+        })
+      }
+
+      function saveRename(oldName) {
+        const inp = document.getElementById('renameInput')
+        const nv = inp ? inp.value.trim() : ''
+        if (!nv) {
+          toast('warning', 'กรุณาพิมพ์ชื่อ')
+          return
+        }
+        if (nv === oldName) {
+          renamingName = ''
+          renderNamesManager()
+          return
+        }
+        nameCall('renameBorrowerName', [oldName, nv, getOperator()], () => {
+          renamingName = ''
+          if (normNm(getOperator()) === normNm(oldName)) {
+            document.getElementById('operatorSelect').value = OP_OTHER
+            document.getElementById('operatorName').value = nv
+            saveOperator()
+          }
+        })
+      }
+
+      function deleteNameItem(name) {
+        const cnt = activeCountByName(name)
+        if (cnt) {
+          Swal.fire(
+            'ลบไม่ได้',
+            'ชื่อ "' + name + '" ยังมีรายการที่กำลังยืมอยู่ ' + cnt + ' รายการ กรุณาให้คืนก่อน',
+            'warning'
+          )
+          return
+        }
+        Swal.fire({
+          title: 'ลบชื่อนี้?',
+          html:
+            'ต้องการลบ <b>' +
+            escapeHtml(name) +
+            '</b> ออกจากรายชื่อและฐานข้อมูลใช่หรือไม่?<br><small class="text-muted">ประวัติเบิก-คืนเดิมจะยังอยู่</small>',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'ลบชื่อ',
+          cancelButtonText: 'ยกเลิก',
+          confirmButtonColor: '#dc3545'
+        }).then(res => {
+          if (!res.isConfirmed) return
+          nameCall('deleteBorrowerName', [name, getOperator()], () => {
+            if (normNm(getOperator()) === normNm(name)) {
+              document.getElementById('operatorSelect').value = ''
+              document.getElementById('operatorName').value = ''
+              document.getElementById('operatorName').classList.add('d-none')
+              saveOperator()
+            }
+          })
+        })
+      }
+
+      let pendingBorrowerTick = ''
+
+      // เพิ่มชื่อที่พิมพ์เองในช่องผู้ใช้งาน (มุมขวาบน) เข้ารายชื่อ
+      function addOperatorName() {
+        const name = document
+          .getElementById('operatorName')
+          .value.replace(/\s+/g, ' ')
+          .trim()
+        if (!name) {
+          toast('warning', 'กรุณาพิมพ์ชื่อก่อน')
+          return
+        }
+        const hit = borrowersList.find(n => normNm(n) === normNm(name))
+        if (hit) {
+          document.getElementById('operatorSelect').value = hit
+          onOperatorChange()
+          toast('info', 'มีชื่อนี้ในรายชื่อแล้ว เลือกให้เรียบร้อย')
+          return
+        }
+        nameCall('addBorrowerName', [name, name])
+      }
+
+      // เพิ่มชื่อที่พิมพ์เองในฟอร์มเบิก เข้ารายชื่อ แล้วติ๊กชื่อนั้นให้
+      function addBorrowerFromForm() {
+        const inp = document.getElementById('borrowerName')
+        const name = inp.value.replace(/\s+/g, ' ').trim()
+        if (!name) {
+          toast('warning', 'กรุณาพิมพ์ชื่อก่อน')
+          return
+        }
+        const hit = borrowersList.find(n => normNm(n) === normNm(name))
+        if (hit) {
+          pendingBorrowerTick = hit
+          inp.value = ''
+          renderBorrowerOptions()
+          toast('info', 'มีชื่อนี้ในรายชื่อแล้ว เลือกให้เรียบร้อย')
+          return
+        }
+        nameCall('addBorrowerName', [name, getOperator() || name], () => {
+          pendingBorrowerTick = name
+          inp.value = ''
+        })
+      }
+
+      let contactInfo = {}
+      function safeUrl(u) {
+        u = String(u || '').trim()
+        return /^https?:\/\//i.test(u) ? u : ''
+      }
+      function contactRow(color, icon, label, value, href, copyVal) {
+        const web = /^https?:/i.test(href || '')
+        return (
+          '<div class="ct-row"><div class="ct-ico" style="background:' +
+          color +
+          '"><i class="' +
+          icon +
+          '"></i></div><div class="ct-txt"><small>' +
+          escapeHtml(label) +
+          '</small><div>' +
+          escapeHtml(value) +
+          '</div></div><div class="ct-act">' +
+          (href
+            ? '<a class="btn btn-sm btn-light" href="' +
+              escapeHtml(href) +
+              '"' +
+              (web ? ' target="_blank" rel="noopener"' : '') +
+              ' title="เปิด"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>'
+            : '') +
+          (copyVal
+            ? '<button type="button" class="btn btn-sm btn-outline-light" data-copy="' +
+              escapeHtml(copyVal) +
+              '" onclick="copyContact(this)" title="คัดลอก"><i class="fa-regular fa-copy"></i></button>'
+            : '') +
+          '</div></div>'
+        )
+      }
+      function renderContact(c) {
+        c = contactInfo = c || {}
+        const lineUrl = safeUrl(c.LINE_URL)
+        const qr =
+          safeUrl(c.QR_IMAGE) ||
+          (lineUrl
+            ? 'https://quickchart.io/qr?size=300&margin=1&text=' +
+              encodeURIComponent(lineUrl)
+            : '')
+        document.getElementById('ctName').innerText = c.NAME || 'ติดต่อผู้ดูแลระบบ'
+        document.getElementById('ctTitle').innerText = c.TITLE || ''
+        document.getElementById('ctNote').innerText = c.NOTE || ''
+        document.getElementById('ctHours').innerHTML = c.HOURS
+          ? '<i class="fa-regular fa-clock me-1"></i>' + escapeHtml(c.HOURS)
+          : ''
+        document.getElementById('ctQr').innerHTML = qr
+          ? '<img src="' + escapeHtml(qr) + '" alt="LINE QR Code">'
+          : '<div class="ct-noqr">ยังไม่ได้ตั้งค่า LINE<br>ใน Config.gs (CONTACT)</div>'
+        document.getElementById('ctScan').style.display = qr ? '' : 'none'
+
+        let rows = ''
+        if (c.LINE_ID || lineUrl)
+          rows += contactRow(
+            '#06c755',
+            'fa-brands fa-line',
+            'LINE',
+            c.LINE_ID || 'เพิ่มเพื่อนผ่านลิงก์',
+            lineUrl,
+            c.LINE_ID
+          )
+        const tel = String(c.PHONE || '').replace(/[^0-9+]/g, '')
+        if (c.PHONE)
+          rows += contactRow(
+            '#0ea5e9',
+            'fa-solid fa-phone',
+            'โทรศัพท์',
+            c.PHONE,
+            tel ? 'tel:' + tel : '',
+            c.PHONE
+          )
+        if (c.EMAIL && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.EMAIL))
+          rows += contactRow(
+            '#f59e0b',
+            'fa-solid fa-envelope',
+            'อีเมล',
+            c.EMAIL,
+            'mailto:' + c.EMAIL,
+            c.EMAIL
+          )
+        const fb = safeUrl(c.FACEBOOK)
+        if (fb)
+          rows += contactRow(
+            '#1877f2',
+            'fa-brands fa-facebook-f',
+            'Facebook',
+            fb.replace(/^https?:\/\/(www\.)?/i, ''),
+            fb,
+            ''
+          )
+        const gh = safeUrl(c.GITHUB)
+        if (gh)
+          rows += contactRow(
+            '#374151',
+            'fa-brands fa-github',
+            'GitHub',
+            gh.replace(/^https?:\/\/(www\.)?/i, ''),
+            gh,
+            ''
+          )
+        const missing = !Object.keys(c).length
+        document.getElementById('ctRows').innerHTML =
+          rows ||
+          '<div class="ct-empty">' +
+            (missing
+              ? 'ไม่ได้รับข้อมูล CONTACT จากเซิร์ฟเวอร์<br>วางทับ Code.gs และ Config.gs ให้ครบ แล้ว Deploy เวอร์ชันใหม่'
+              : 'ยังไม่ได้ตั้งค่าข้อมูลติดต่อใน Config.gs (CONTACT)') +
+            '</div>'
+      }
+      function openContactModal() {
+        bootstrap.Modal.getOrCreateInstance(
+          document.getElementById('contactModal')
+        ).show()
+      }
+      function copyContact(btn) {
+        const t = String(btn.dataset.copy || '')
+        const done = () => toast('success', 'คัดลอกแล้ว')
+        if (navigator.clipboard && navigator.clipboard.writeText)
+          navigator.clipboard.writeText(t).then(done, done)
+        else {
+          const ta = document.createElement('textarea')
+          ta.value = t
+          document.body.appendChild(ta)
+          ta.select()
+          try {
+            document.execCommand('copy')
+          } catch (e) {}
+          document.body.removeChild(ta)
+          done()
+        }
+      }
+
+      function syncOperatorDelBtn() {
+        const v = document.getElementById('operatorSelect').value
+        document
+          .getElementById('btnDelOperator')
+          .classList.toggle('d-none', !v || v === OP_OTHER)
+      }
+
+      function deleteSelectedOperator() {
+        const v = document.getElementById('operatorSelect').value
+        if (!v || v === OP_OTHER) return
+        deleteNameItem(v)
+      }
+
+      function bindExtraActions() {
+        document.getElementById('borrowerList').addEventListener(
+          'click',
+          e => {
+            const b = e.target.closest('.name-del')
+            if (!b) return
+            e.preventDefault()
+            e.stopPropagation()
+            deleteNameItem(b.dataset.delName)
+          },
+          true
+        )
+        document
+          .getElementById('auditTableBody')
+          .addEventListener('click', e => {
+            const t = e.target.closest('[data-act]')
+            if (!t) return
+            const a = t.dataset.act
+            if (a === 'asset') editAsset(t.dataset.code)
+            else if (a === 'create') createAssetFromAudit(t.dataset.row)
+            else if (a === 'auditEdit') openAuditModal(t.dataset.row)
+            else if (a === 'auditDel') deleteAuditItem(t.dataset.row)
+          })
+        const nb = document.getElementById('namesManageList')
+        nb.addEventListener('click', e => {
+          const t = e.target.closest('[data-name-act]')
+          if (!t) return
+          const n = t.dataset.name
+          const a = t.dataset.nameAct
+          if (a === 'rename') {
+            renamingName = n
+            renderNamesManager()
+            const i = document.getElementById('renameInput')
+            if (i) {
+              i.focus()
+              i.select()
+            }
+          } else if (a === 'cancel') {
+            renamingName = ''
+            renderNamesManager()
+          } else if (a === 'save') saveRename(n)
+          else if (a === 'del') deleteNameItem(n)
+        })
+        nb.addEventListener('keydown', e => {
+          if (e.target.id !== 'renameInput') return
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            saveRename(renamingName)
+          } else if (e.key === 'Escape') {
+            e.stopPropagation()
+            renamingName = ''
+            renderNamesManager()
+          }
+        })
+      }
+
+
+      function renderAssetTable(assets) {
+        var tbody = document.getElementById('assetTableBody')
+        if (assets.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="12" class="text-center py-4 text-muted">ไม่พบข้อมูลอุปกรณ์</td></tr>'
+          return
+        }
+        var NOIMG = 'https://placehold.co/150x150?text=No+Img'
+        var out = []
+        assets.forEach(function (item) {
+          var code = String(item[3] || '')
+          var c = escapeHtml(code)
+          var status = item[13] || 'พร้อมใช้งาน'
+          var imgUrl = item[2] || NOIMG
+          var qrUrl =
+            'https://quickchart.io/qr?size=100&text=' +
+            encodeURIComponent(qrText(code))
+          var badge = '<span class="badge badge-available">พร้อมใช้งาน</span>'
+          if (status === 'ถูกยืม')
+            badge = '<span class="badge badge-borrowed">ถูกยืม</span>'
+          else if (status !== 'พร้อมใช้งาน')
+            badge =
+              '<span class="badge badge-repair">' +
+              escapeHtml(status) +
+              '</span>'
+          out.push(
+            '<tr>' +
+              '<td><input type="checkbox" class="asset-checkbox" value="' +
+              c +
+              '"' +
+              (selectedCodes.has(code) ? ' checked' : '') +
+              '></td>' +
+              '<td><img src="' +
+              escapeHtml(imgUrl) +
+              '" class="asset-img" data-act="img" data-img="' +
+              escapeHtml(imgUrl) +
+              '" title="ดูภาพขยาย" onerror="this.onerror=null;this.src=&quot;' +
+              NOIMG +
+              '&quot;"></td>' +
+              '<td><img src="' +
+              escapeHtml(qrUrl) +
+              '" class="qr-thumb" data-act="qr" data-code="' +
+              c +
+              '" data-qr="' +
+              escapeHtml(qrUrl) +
+              '" title="ดู QR Code"></td>' +
+              '<td class="fw-bold">' +
+              c +
+              '</td>' +
+              '<td>' +
+              escapeHtml(item[4] || '') +
+              '</td>' +
+              '<td>' +
+              escapeHtml(item[5] || '-') +
+              '</td>' +
+              '<td>' +
+              escapeHtml(item[6] || '-') +
+              '</td>' +
+              '<td class="text-center">' +
+              escapeHtml(item[10] || 0) +
+              '</td>' +
+              '<td class="text-center">' +
+              escapeHtml(item[11] || 0) +
+              '</td>' +
+              '<td class="text-center fw-bold">' +
+              escapeHtml(item[12] || 0) +
+              '</td>' +
+              '<td class="text-center">' +
+              badge +
+              '</td>' +
+              '<td class="text-center">' +
+              (activeBorrows(code).length
+                ? '<button class="btn btn-sm btn-success me-1" data-act="ret" data-code="' +
+                  c +
+                  '" title="คืนอุปกรณ์"><i class="fa-solid fa-rotate-left"></i></button>'
+                : '') +
+              '<button class="btn btn-sm btn-outline-primary me-1" data-act="edit" data-code="' +
+              c +
+              '" title="แก้ไข"><i class="fa-solid fa-pen"></i></button>' +
+              '<button class="btn btn-sm btn-outline-danger" data-act="del" data-code="' +
+              c +
+              '" title="ลบ"><i class="fa-solid fa-trash"></i></button>' +
+              '</td></tr>'
+          )
+        })
+        tbody.innerHTML = out.join('')
+      }
+
+      function filterAssets() {
+        const q = document.getElementById('searchInput').value.toLowerCase()
+        const cat = document.getElementById('categoryFilter').value
+
+        const filtered = globalAssets.filter(item => {
+          const code = String(item[3] || '').toLowerCase()
+          const name = String(item[4] || '').toLowerCase()
+          const itemCat = item[5] || ''
+          const matchQuery = code.includes(q) || name.includes(q)
+          const matchCat = cat === '' || itemCat === cat
+          return matchQuery && matchCat
+        })
+
+        renderAssetTable(filtered)
+      }
+
+      function toggleSelectAll(master) {
+        const checkboxes = document.querySelectorAll('.asset-checkbox')
+        checkboxes.forEach(cb => {
+          cb.checked = master.checked
+          toggleSelectCode(cb.value, master.checked)
+        })
+      }
+
+      function toggleSelectCode(code, isChecked) {
+        if (isChecked) selectedCodes.add(code)
+        else selectedCodes.delete(code)
+      }
+
+      function printSelectedQRCodes() {
+        if (selectedCodes.size === 0) {
+          Swal.fire(
+            'คำเตือน',
+            'กรุณาเลือกรายการอุปกรณ์อย่างน้อย 1 รายการเพื่อพิมพ์ QR Code',
+            'warning'
+          )
+          return
+        }
+        let cardsHtml =
+          '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>พิมพ์ QR Code</title>'
+        cardsHtml +=
+          '<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">'
+        cardsHtml +=
+          '<style>body{font-family:Prompt,sans-serif;margin:0;padding:20px;background:#fff}.grid{display:flex;flex-wrap:wrap;gap:15px}.card{border:1px dashed #999;padding:10px;border-radius:6px;width:140px;display:flex;flex-direction:column;align-items:center;text-align:center;page-break-inside:avoid;margin-bottom:15px}.card img{width:90px;height:90px;margin-bottom:5px}.title{font-size:11px;font-weight:600;line-height:1.2;margin-bottom:3px;color:#000}.code{font-size:10px;color:#333;font-weight:bold}</style>'
+        cardsHtml += '</head><body><div class="grid">'
+
+        selectedCodes.forEach(code => {
+          const item = globalAssets.find(r => String(r[3]) === String(code))
+          const itemName = item ? item[4] : 'ไม่ทราบชื่อ'
+          const qrUrl =
+            'https://quickchart.io/qr?size=150&text=' +
+            encodeURIComponent(qrText(code))
+
+          cardsHtml +=
+            '<div class="card"><img src="' +
+            qrUrl +
+            '"><div class="title">' +
+            escapeHtml(itemName) +
+            '</div><div class="code">' +
+            escapeHtml(code) +
+            '</div></div>'
+        })
+
+        cardsHtml +=
+          '</div><scr' +
+          'ipt>window.onload=function(){setTimeout(function(){window.print();},500);}</scr' +
+          'ipt></body></html>'
+
+        const blob = new Blob([cardsHtml], { type: 'text/html;charset=utf-8' })
+        const url = URL.createObjectURL(blob)
+        const printWindow = window.open(url, '_blank')
+        if (!printWindow) {
+          Swal.fire(
+            'ข้อผิดพลาด',
+            'เบราว์เซอร์บล็อกหน้าต่าง Pop-up กรุณาอนุญาต Pop-up',
+            'error'
+          )
+        }
+      }
+
+      function escapeHtml(text) {
+        if (!text) return ''
+        return String(text)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;')
+      }
+
+      function openAssetModal() {
+        pendingAuditRow = ''
+        document.getElementById('assetForm').reset()
+        document.getElementById('oldAssetId').value = ''
+        document.getElementById('assetImageUrl').value = ''
+        document.getElementById('imagePreview').src =
+          'https://placehold.co/150x150?text=No+Image'
+        document.getElementById('assetModalTitle').innerText =
+          'เพิ่มอุปกรณ์ใหม่'
+        assetModal.show()
+      }
+
+      function editAsset(code) {
+        pendingAuditRow = ''
+        const item = globalAssets.find(r => String(r[3]) === String(code))
+        if (!item) return
+        const set = (id, v) => (document.getElementById(id).value = v)
+        set('oldAssetId', item[3])
+        set('assetId', item[3])
+        set('assetName', item[4])
+        set('assetCategory', item[5] || '')
+        set('assetLocation', item[6] || '')
+        set('assetMin', item[8] || 0)
+        set('assetPrice', item[9] || 0)
+        set('assetBtt', item[10] || 0)
+        set('assetTke', item[11] || 0)
+        set('assetStatus', item[13] || 'พร้อมใช้งาน')
+        set('assetRemark', item[15] || '')
+        set('assetImageUrl', '')
+        document.getElementById('imagePreview').src =
+          item[2] || 'https://placehold.co/150x150?text=No+Image'
+        document.getElementById('assetModalTitle').innerText =
+          'แก้ไขข้อมูลอุปกรณ์'
+        assetModal.show()
+      }
+
+      function handleAssetSubmit(e) {
+        e.preventDefault()
+        const form = document.getElementById('assetForm')
+        const formData = new FormData(form)
+        const formObj = {}
+        formData.forEach((value, key) => (formObj[key] = value))
+        formObj.operator = getOperator()
+        formObj.auditRow = pendingAuditRow
+
+        Swal.fire({
+          title: 'กำลังบันทึก...',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading()
+        })
+
+        google.script.run
+          .withSuccessHandler(res => {
+            Swal.close()
+            if (res.success) {
+              assetModal.hide()
+              Swal.fire('สำเร็จ', res.message, 'success')
+              loadData()
+            } else {
+              Swal.fire('ข้อผิดพลาด', res.message, 'error')
+            }
+          })
+          .withFailureHandler(onError)
+          .saveAssetData(formObj)
+      }
+
+      function handleImageUpload(input) {
+        if (!input.files || !input.files[0]) return
+        const code = document.getElementById('assetId').value.trim()
+        if (!code) {
+          Swal.fire('คำเตือน', 'กรุณากรอกรหัสอุปกรณ์ก่อนอัปโหลดรูป', 'warning')
+          input.value = ''
+          return
+        }
+        const reader = new FileReader()
+        reader.onload = function (e) {
+          const img = new Image()
+          img.onload = function () {
+            const max = 1024
+            const k = Math.min(1, max / Math.max(img.width, img.height))
+            const cv = document.createElement('canvas')
+            cv.width = Math.round(img.width * k)
+            cv.height = Math.round(img.height * k)
+            cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height)
+            const dataUrl = cv.toDataURL('image/jpeg', 0.8)
+            document.getElementById('imagePreview').src = dataUrl
+            Swal.fire({
+              title: 'กำลังอัปโหลดรูปภาพ...',
+              allowOutsideClick: false,
+              didOpen: () => Swal.showLoading()
+            })
+            google.script.run
+              .withSuccessHandler(res => {
+                Swal.close()
+                if (res.success) {
+                  document.getElementById('assetImageUrl').value = res.url
+                  Swal.fire(
+                    'อัปโหลดสำเร็จ',
+                    'บันทึกรูปที่ pic/' +
+                      code +
+                      '.jpg แล้ว (อาจใช้เวลา 1-5 นาทีก่อนแสดงในตาราง) กด "บันทึกข้อมูล" เพื่อบันทึกต่อ',
+                    'success'
+                  )
+                } else Swal.fire('อัปโหลดล้มเหลว', res.message, 'error')
+              })
+              .withFailureHandler(onError)
+              .uploadImageToGitHub(dataUrl, code, getOperator())
+          }
+          img.src = e.target.result
+        }
+        reader.readAsDataURL(input.files[0])
+      }
+
+      function deleteAsset(code) {
+        Swal.fire({
+          title: 'ยืนยันการลบ?',
+          text: 'ต้องการลบอุปกรณ์รหัส ' + code + ' ใช่หรือไม่?',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'ลบข้อมูล',
+          cancelButtonText: 'ยกเลิก',
+          confirmButtonColor: '#dc3545'
+        }).then(result => {
+          if (result.isConfirmed) {
+            Swal.fire({
+              title: 'กำลังลบ...',
+              allowOutsideClick: false,
+              didOpen: () => Swal.showLoading()
+            })
+            google.script.run
+              .withSuccessHandler(res => {
+                Swal.close()
+                if (res.success) {
+                  Swal.fire('สำเร็จ', res.message, 'success')
+                  loadData()
+                } else {
+                  Swal.fire('ข้อผิดพลาด', res.message, 'error')
+                }
+              })
+              .withFailureHandler(onError)
+              .deleteAssetData(code, getOperator())
+          }
+        })
+      }
+
+      var cart = []
+      var lastScan = { code: '', t: 0 }
+
+      function loadCart() {
+        try {
+          cart = JSON.parse(localStorage.getItem('btt_cart') || '[]')
+        } catch (e) {
+          cart = []
+        }
+      }
+      function saveCart() {
+        try {
+          localStorage.setItem('btt_cart', JSON.stringify(cart))
+        } catch (e) {}
+      }
+      function assetByCode(code) {
+        return globalAssets.find(function (a) {
+          return String(a[3]).trim() === String(code).trim()
+        })
+      }
+      function sanitizeCart() {
+        cart = cart.filter(function (it) {
+          var a = assetByCode(it.code)
+          if (!a || a[13] !== 'พร้อมใช้งาน' || (Number(a[12]) || 0) <= 0)
+            return false
+          it.qty = Math.min(it.qty, Number(a[12]) || 0)
+          return it.qty >= 1
+        })
+        saveCart()
+        renderCart()
+      }
+      function addToCart(code) {
+        code = String(code || '').trim()
+        var a = assetByCode(code)
+        if (!a) return { ok: false, msg: 'ไม่พบรหัส ' + code + ' ในระบบ' }
+        var stock = Number(a[12]) || 0
+        if (a[13] !== 'พร้อมใช้งาน' || stock <= 0)
+          return { ok: false, msg: code + ' ไม่พร้อมเบิก (' + a[13] + ')' }
+        var it = cart.find(function (x) {
+          return x.code === code
+        })
+        if (it) {
+          if (it.qty >= stock)
+            return {
+              ok: false,
+              msg: code + ' ครบจำนวนคงเหลือ (' + stock + ') แล้ว'
+            }
+          it.qty++
+        } else cart.push({ code: code, qty: 1 })
+        saveCart()
+        renderCart()
+        return { ok: true, msg: 'เพิ่ม ' + code + ' - ' + a[4] }
+      }
+      function renderCart() {
+        var box = document.getElementById('cartList')
+        if (!box) return
+        document.getElementById('cartCount').innerText = cart.length
+        var badge = document.getElementById('cartBadge')
+        badge.innerText = cart.length
+        badge.style.display = cart.length ? 'inline-block' : 'none'
+        if (!cart.length) {
+          box.innerHTML =
+            '<div class="list-group-item text-center text-muted small">ยังไม่มีรายการ สแกน QR หรือเลือกอุปกรณ์แล้วกด "เพิ่ม"</div>'
+          return
+        }
+        box.innerHTML = cart
+          .map(function (it) {
+            var a = assetByCode(it.code)
+            var c = escapeHtml(it.code)
+            return (
+              '<div class="list-group-item d-flex align-items-center gap-2">' +
+              '<div class="flex-grow-1"><div class="fw-bold">' +
+              c +
+              '</div>' +
+              '<small class="text-muted">' +
+              escapeHtml(a ? a[4] : '') +
+              ' · คงเหลือ ' +
+              escapeHtml(a ? a[12] : 0) +
+              '</small></div>' +
+              '<button type="button" class="btn btn-sm btn-outline-secondary" data-cart="dec" data-code="' +
+              c +
+              '">-</button>' +
+              '<span class="fw-bold px-1">' +
+              it.qty +
+              '</span>' +
+              '<button type="button" class="btn btn-sm btn-outline-secondary" data-cart="inc" data-code="' +
+              c +
+              '">+</button>' +
+              '<button type="button" class="btn btn-sm btn-outline-danger" data-cart="del" data-code="' +
+              c +
+              '"><i class="fa-solid fa-trash"></i></button>' +
+              '</div>'
+            )
+          })
+          .join('')
+      }
+      function clearCart() {
+        cart = []
+        saveCart()
+        renderCart()
+      }
+      function bindCart() {
+        document
+          .getElementById('cartList')
+          .addEventListener('click', function (e) {
+            var t = e.target.closest('[data-cart]')
+            if (!t) return
+            var it = cart.find(function (x) {
+              return x.code === t.dataset.code
+            })
+            if (!it) return
+            var a = assetByCode(it.code)
+            var stock = a ? Number(a[12]) || 0 : 0
+            if (t.dataset.cart === 'inc') it.qty = Math.min(stock, it.qty + 1)
+            else if (t.dataset.cart === 'dec') it.qty = it.qty - 1
+            else it.qty = 0
+            cart = cart.filter(function (x) {
+              return x.qty >= 1
+            })
+            saveCart()
+            renderCart()
+          })
+        document
+          .getElementById('borrowModal')
+          .addEventListener('hidden.bs.modal', stopQrScanner)
+      }
+      function beep() {
+        try {
+          var ctx = new (window.AudioContext || window.webkitAudioContext)()
+          var o = ctx.createOscillator()
+          o.frequency.value = 880
+          o.connect(ctx.destination)
+          o.start()
+          setTimeout(function () {
+            o.stop()
+            ctx.close()
+          }, 120)
+        } catch (e) {}
+        try {
+          if (navigator.vibrate) navigator.vibrate(80)
+        } catch (e) {}
+      }
+      function toast(icon, msg) {
+        Swal.fire({
+          toast: true,
+          position: 'top',
+          icon: icon,
+          title: msg,
+          showConfirmButton: false,
+          timer: 1400
+        })
+      }
+      function saveAppUrlFromInput() {
+        var v = document.getElementById('appUrlInput').value
+        google.script.run
+          .withSuccessHandler(function (res) {
+            if (res.success) {
+              Swal.fire(
+                'สำเร็จ',
+                res.message +
+                  ' (อย่าลืมให้ผู้ดูแลรัน setupQrFormulas เพื่ออัปเดต QR ในชีต)',
+                'success'
+              )
+              loadData()
+            } else Swal.fire('ข้อผิดพลาด', res.message, 'error')
+          })
+          .withFailureHandler(onError)
+          .saveAppUrl(v)
+      }
+      function qrText(code) {
+        return appUrl ? appUrl + '?code=' + encodeURIComponent(code) : code
+      }
+      function extractCode(text) {
+        var s = String(text).trim()
+        var m = /[?&]code=([^&#]+)/.exec(s)
+        return m ? decodeURIComponent(m[1]).trim() : s
+      }
+      function processPendingCode() {
+        if (!pendingCode || !dataLoaded) return
+        var code = pendingCode
+        pendingCode = ''
+        try {
+          google.script.history.replace(null, {}, '')
+        } catch (e) {}
+        var a = assetByCode(code)
+        if (!a) {
+          Swal.fire('ไม่พบรหัส', 'ไม่พบรหัส "' + code + '" ในระบบ', 'warning')
+          return
+        }
+        document.getElementById('searchInput').value = code
+        filterAssets()
+        // กันเพิ่มซ้ำเมื่อรีเฟรชหน้าเดิมภายใน 15 วินาที
+        var skip = false
+        try {
+          var l = JSON.parse(localStorage.getItem('btt_land') || '{}')
+          skip = l.code === code && Date.now() - l.t < 15000
+        } catch (e) {}
+        var msg = ''
+        if (!skip) {
+          msg = addToCart(code).msg
+          try {
+            localStorage.setItem(
+              'btt_land',
+              JSON.stringify({ code: code, t: Date.now() })
+            )
+          } catch (e) {}
+        }
+        var it = cart.find(function (x) {
+          return x.code === code
+        })
+        var info =
+          '<b>' +
+          escapeHtml(code) +
+          '</b><br>' +
+          escapeHtml(a[4]) +
+          '<br><small>สถานะ: ' +
+          escapeHtml(a[13]) +
+          ' · คงเหลือ ' +
+          escapeHtml(a[12]) +
+          '</small><br>' +
+          (it
+            ? '<span class="text-success">อยู่ในรายการเตรียมเบิกแล้ว (' +
+              it.qty +
+              ' ชิ้น)</span>'
+            : '<span class="text-danger">' +
+              escapeHtml(msg || 'ไม่พร้อมเบิก') +
+              '</span>')
+        Swal.fire({
+          title: 'สแกนสำเร็จ',
+          html: info,
+          icon: it ? 'success' : 'info',
+          showCancelButton: true,
+          showDenyButton: activeBorrows(code).length > 0,
+          confirmButtonText: 'ไปที่รายการเบิก',
+          denyButtonText: 'คืนอุปกรณ์',
+          cancelButtonText: 'ปิด'
+        }).then(function (r) {
+          if (r.isConfirmed) openBorrowModal(false)
+          else if (r.isDenied) returnFromAsset(code)
+        })
+      }
+      function addFromSelect() {
+        var sel = document.getElementById('borrowAssetSelect')
+        if (!sel.value) return
+        var r = addToCart(sel.value)
+        toast(r.ok ? 'success' : 'warning', r.msg)
+        sel.value = ''
+      }
+
+      function openBorrowModal(autoScan) {
+        document.getElementById('borrowForm').reset()
+        document.getElementById('borrowerSearch').value = ''
+        document.getElementById('borrowerList').innerHTML = ''
+        renderBorrowerOptions()
+        stopQrScanner()
+        renderCart()
+        borrowModal.show()
+        if (autoScan === true) setTimeout(startQrScanner, 500)
+      }
+
+      function startQrScanner() {
+        const readerDiv = document.getElementById('qr-reader')
+        const stopBtn = document.getElementById('btnStopScanner')
+
+        readerDiv.style.display = 'block'
+        stopBtn.style.display = 'block'
+
+        if (!html5QrCode) {
+          html5QrCode = new Html5Qrcode('qr-reader')
+        }
+
+        html5QrCode
+          .start(
+            { facingMode: 'environment' },
+            {
+              fps: 10,
+              qrbox: { width: 220, height: 220 }
+            },
+            decodedText => {
+              onScanSuccess(decodedText)
+            },
+            errorMessage => {}
+          )
+          .catch(err => {
+            Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเปิดกล้องได้: ' + err, 'error')
+            stopQrScanner()
+          })
+      }
+
+      function stopQrScanner() {
+        if (html5QrCode && html5QrCode.isScanning) {
+          html5QrCode
+            .stop()
+            .then(() => {
+              document.getElementById('qr-reader').style.display = 'none'
+              document.getElementById('btnStopScanner').style.display = 'none'
+            })
+            .catch(err => {
+              console.error('Failed to stop scanning.', err)
+            })
+        } else {
+          document.getElementById('qr-reader').style.display = 'none'
+          document.getElementById('btnStopScanner').style.display = 'none'
+        }
+      }
+
+      function onScanSuccess(decodedText) {
+        var code = extractCode(decodedText)
+        var now = Date.now()
+        // กันสแกนซ้ำรหัสเดิมรัวๆ (ต้องเว้น 2 วินาที)
+        if (code === lastScan.code && now - lastScan.t < 2000) return
+        lastScan = { code: code, t: now }
+        var r = addToCart(code)
+        if (r.ok) beep()
+        toast(r.ok ? 'success' : 'warning', r.msg)
+      }
+
+      function handleBorrowSubmit(e) {
+        e.preventDefault()
+        stopQrScanner()
+        if (!getBorrowerName()) {
+          Swal.fire(
+            'คำเตือน',
+            getBorrowerTick() === BORROWER_OTHER
+              ? 'กรุณาพิมพ์ชื่อผู้เบิก'
+              : 'กรุณาติ๊กเลือกชื่อผู้เบิก',
+            'warning'
+          )
+          return
+        }
+        if (!cart.length) {
+          Swal.fire(
+            'คำเตือน',
+            'ยังไม่มีรายการที่จะเบิก กรุณาสแกนหรือเลือกอุปกรณ์',
+            'warning'
+          )
+          return
+        }
+        for (var i = 0; i < cart.length; i++) {
+          var a = assetByCode(cart[i].code)
+          if (!a || cart[i].qty > (Number(a[12]) || 0)) {
+            Swal.fire(
+              'คำเตือน',
+              'จำนวนของ ' + cart[i].code + ' เกินคงเหลือ กรุณาตรวจสอบ',
+              'warning'
+            )
+            return
+          }
+        }
+        var payload = {
+          borrowerName: getBorrowerName(),
+          projectName: document.getElementById('projectName').value,
+          locationAddress: document.getElementById('locationAddress').value,
+          operator: getOperator(),
+          items: cart.map(function (it) {
+            return { itemCode: it.code, quantity: it.qty }
+          })
+        }
+        Swal.fire({
+          title: 'กำลังบันทึกการเบิก...',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading()
+        })
+        google.script.run
+          .withSuccessHandler(res => {
+            Swal.close()
+            if (res.success) {
+              clearCart()
+              borrowModal.hide()
+              Swal.fire('สำเร็จ', res.message, 'success')
+              loadData()
+            } else {
+              Swal.fire('ข้อผิดพลาด', res.message, 'error')
+            }
+          })
+          .withFailureHandler(onError)
+          .saveBatchBorrowData(payload)
+      }
+
+      // รายการที่ยังค้างคืนของอุปกรณ์ชิ้นนั้น
+      function activeBorrows(code) {
+        return globalBorrows.filter(function (r) {
+          return (
+            String(r[1]).trim() === String(code).trim() && r[8] === 'กำลังยืม'
+          )
+        })
+      }
+
+      // คืนจากหน้ารายการอุปกรณ์ / หลังสแกน QR
+      function returnFromAsset(code) {
+        var list = activeBorrows(code)
+        if (!list.length) {
+          Swal.fire(
+            'ไม่มีรายการค้างคืน',
+            'อุปกรณ์ ' + code + ' ไม่มีรายการที่กำลังยืมอยู่',
+            'info'
+          )
+          return
+        }
+        if (list.length === 1) {
+          returnAssetItem(code, list[0][11])
+          return
+        }
+        var opts = {}
+        list.forEach(function (r) {
+          opts[r[11]] =
+            r[6] + ' · ' + r[3] + ' ชิ้น · เบิก ' + r[4] + ' · ' + r[2]
+        })
+        Swal.fire({
+          title: 'เลือกรายการที่จะคืน',
+          text: code + ' มี ' + list.length + ' รายการที่ค้างคืน',
+          input: 'select',
+          inputOptions: opts,
+          inputPlaceholder: '-- เลือกรายการ --',
+          showCancelButton: true,
+          confirmButtonText: 'ถัดไป',
+          cancelButtonText: 'ยกเลิก',
+          inputValidator: function (v) {
+            return !v && 'กรุณาเลือกรายการ'
+          }
+        }).then(function (res) {
+          if (res.isConfirmed) returnAssetItem(code, res.value)
+        })
+      }
+
+      function returnAssetItem(itemCode, rowIndex) {
+        var b = globalBorrows.find(function (r) {
+          return String(r[11]) === String(rowIndex)
+        })
+        var borrower = b ? String(b[6]) : ''
+        var names = borrowersList.slice()
+        if (borrower && names.indexOf(borrower) < 0) names.push(borrower)
+        var op = getOperator()
+        Swal.fire({
+          title: 'ยืนยันการคืน?',
+          html:
+            'คืนอุปกรณ์ <b>' +
+            escapeHtml(itemCode) +
+            '</b>' +
+            (b ? ' จำนวน ' + escapeHtml(b[3]) + ' ชิ้น' : '') +
+            '<br><small class="text-muted">ผู้เบิก: ' +
+            escapeHtml(borrower) +
+            '</small><br><br>ติ๊กเลือกชื่อผู้คืน' +
+            '<div class="list-group mt-2" id="returnerList" style="max-height:220px;overflow-y:auto">' +
+            nameChoicesHtml(names, names.indexOf(op) >= 0 ? op : '') +
+            '</div>',
+          didOpen: function () {
+            singleTick(document.getElementById('returnerList'))
+          },
+          preConfirm: function () {
+            var t = document.querySelector('#returnerList .name-tick:checked')
+            if (!t) {
+              Swal.showValidationMessage('กรุณาติ๊กเลือกชื่อผู้คืน')
+              return false
+            }
+            return t.value
+          },
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: 'ยืนยันคืน',
+          cancelButtonText: 'ยกเลิก'
+        }).then(result => {
+          if (result.isConfirmed) {
+            var returnedBy = result.value
+            Swal.fire({
+              title: 'กำลังบันทึกการคืน...',
+              allowOutsideClick: false,
+              didOpen: () => Swal.showLoading()
+            })
+            google.script.run
+              .withSuccessHandler(res => {
+                Swal.close()
+                if (res.success) {
+                  Swal.fire('สำเร็จ', res.message, 'success')
+                  loadData()
+                } else {
+                  Swal.fire('ข้อผิดพลาด', res.message, 'error')
+                }
+              })
+              .withFailureHandler(onError)
+              .returnAsset(itemCode, rowIndex, getOperator(), returnedBy)
+          }
+        })
+      }
+
+      function renderBorrowTable(borrows) {
+        var tbody = document.getElementById('borrowTableBody')
+        if (borrows.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="11" class="text-center py-4 text-muted">ไม่พบประวัติการเบิก-คืน</td></tr>'
+          return
+        }
+        var out = []
+        borrows.forEach(function (row) {
+          var isReturned = row[8] === 'คืนแล้ว'
+          var badge = isReturned
+            ? '<span class="badge bg-success">คืนแล้ว</span>'
+            : '<span class="badge bg-warning text-dark">กำลังยืม</span>'
+          // row[11] = เลขแถวจริงในชีต BorrowData
+          var btn = isReturned
+            ? '-'
+            : '<button class="btn btn-sm btn-outline-success" data-act="return" data-code="' +
+              escapeHtml(row[1]) +
+              '" data-row="' +
+              escapeHtml(row[11]) +
+              '"><i class="fa-solid fa-rotate-left me-1"></i> คืนอุปกรณ์</button>'
+          out.push(
+            '<tr><td>' +
+              escapeHtml(row[0]) +
+              '</td>' +
+              '<td class="fw-bold">' +
+              escapeHtml(row[1]) +
+              '</td>' +
+              '<td>' +
+              escapeHtml(row[2]) +
+              '</td>' +
+              '<td>' +
+              escapeHtml(row[3]) +
+              '</td>' +
+              '<td>' +
+              escapeHtml(row[6]) +
+              '</td>' +
+              '<td>' +
+              escapeHtml(row[7]) +
+              '</td>' +
+              '<td>' +
+              escapeHtml(row[4]) +
+              '</td>' +
+              '<td>' +
+              escapeHtml(row[5]) +
+              '</td>' +
+              '<td>' +
+              escapeHtml(row[12] || '-') +
+              '</td>' +
+              '<td>' +
+              badge +
+              '</td><td>' +
+              btn +
+              '</td></tr>'
+          )
+        })
+        tbody.innerHTML = out.join('')
+      }
+
+      function renderLogTable(logs) {
+        const tbody = document.getElementById('logTableBody')
+        if (logs.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="5" class="text-center py-4 text-muted">ไม่พบประวัติกิจกรรม</td></tr>'
+          return
+        }
+
+        let html = ''
+        logs.forEach(row => {
+          html +=
+            '<tr>' +
+            '<td>' +
+            row[0] +
+            '</td>' +
+            '<td><small>' +
+            row[1] +
+            '</small></td>' +
+            '<td>' +
+            escapeHtml(row[2]) +
+            '</td>' +
+            '<td><span class="badge bg-secondary">' +
+            escapeHtml(row[3]) +
+            '</span></td>' +
+            '<td>' +
+            escapeHtml(row[4]) +
+            '</td>' +
+            '</tr>'
+        })
+        tbody.innerHTML = html
+      }
+
+      function showImageModal(url) {
+        Swal.fire({
+          imageUrl: url,
+          imageAlt: 'รูปภาพอุปกรณ์',
+          showCloseButton: true,
+          showConfirmButton: false
+        })
+      }
+
+      function showQRModal(code, qrUrl) {
+        Swal.fire({
+          title: 'QR Code: ' + code,
+          footer:
+            '<small style="word-break:break-all">QR เก็บค่า: ' +
+            escapeHtml(qrText(code)) +
+            '</small>',
+          imageUrl: qrUrl,
+          imageWidth: 200,
+          imageHeight: 200,
+          imageAlt: code,
+          showCloseButton: true,
+          confirmButtonText: 'พิมพ์รายการนี้',
+          showCancelButton: true,
+          cancelButtonText: 'ปิด'
+        }).then(res => {
+          if (res.isConfirmed) {
+            selectedCodes.clear()
+            selectedCodes.add(code)
+            printSelectedQRCodes()
+          }
+        })
+      }
+
+      function onError(err) {
+        Swal.close()
+        Swal.fire('เกิดข้อผิดพลาด', err.toString(), 'error')
+      }
+
+      function populateDropdown(type) {
+        const isCat = type === 'category'
+        const inputId = isCat ? 'assetCategory' : 'assetLocation'
+        const menu = document.getElementById(
+          isCat ? 'catDropdownMenu' : 'locDropdownMenu'
+        )
+        const values = isCat ? categoriesList : locationsList
+        menu.innerHTML = ''
+        if (!values.length) {
+          menu.innerHTML =
+            '<li><span class="dropdown-item-text text-muted">ยังไม่มีรายการ พิมพ์เพิ่มได้เลย</span></li>'
+          return
+        }
+        values.forEach(val => {
+          const li = document.createElement('li')
+          const a = document.createElement('a')
+          a.className = 'dropdown-item'
+          a.href = '#'
+          a.textContent = val
+          a.addEventListener('click', ev => {
+            ev.preventDefault()
+            document.getElementById(inputId).value = val
+          })
+          li.appendChild(a)
+          menu.appendChild(li)
+        })
+      }
+    </script>
+  </body>
+</html>
