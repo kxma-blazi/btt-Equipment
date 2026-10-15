@@ -45,7 +45,7 @@ const CONFIG = {
     PHONE: "",
     EMAIL: "",
     FACEBOOK: "",
-    GITHUB: "https://github.com/kxma-blazi",
+    GITHUB: "https://github.com/kxma-blazi/btt-Equipment/tree/88b1d1c4dda43923aead601be90bdc0ca7a9facc/Code",
   },
   GITHUB: { 
     OWNER: "kxma-blazi", 
