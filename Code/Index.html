@@ -273,6 +273,10 @@
         70% { box-shadow: 0 0 0 16px rgba(236, 72, 153, 0); }
         100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
       }
+
+      .stat-click { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+      .stat-click:hover { transform: translateY(-2px); }
+      .stat-click.active { box-shadow: 0 0 0 3px #ec4899; }
     </style>
   </head>
   <body>
@@ -400,52 +404,65 @@
       </div>
 
       <!-- Summary Dashboard Cards -->
-      <div class="row g-3 mb-4">
-        <div class="col-md-3 col-6">
-          <div class="card p-3">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <div class="text-muted small">อุปกรณ์ทั้งหมด</div>
-                <h3 class="fw-bold m-0" id="statTotal">0</h3>
-              </div>
-              <i class="fa-solid fa-cubes fa-2x text-primary"></i>
-            </div>
-          </div>
+      <!-- Summary Dashboard Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md col-6">
+    <div class="card p-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="text-muted small">อุปกรณ์ทั้งหมด</div>
+          <h3 class="fw-bold m-0" id="statTotal">0</h3>
         </div>
-        <div class="col-md-3 col-6">
-          <div class="card p-3">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <div class="text-muted small">พร้อมใช้งาน</div>
-                <h3 class="fw-bold m-0 text-success" id="statAvailable">0</h3>
-              </div>
-              <i class="fa-solid fa-circle-check fa-2x text-success"></i>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-3 col-6">
-          <div class="card p-3">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <div class="text-muted small">กำลังถูกยืม</div>
-                <h3 class="fw-bold m-0 text-warning" id="statBorrowed">0</h3>
-              </div>
-              <i class="fa-solid fa-people-carry-box fa-2x text-warning"></i>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-3 col-6">
-          <div class="card p-3">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <div class="text-muted small">สต็อกต่ำ / ต้องสั่งเพิ่ม</div>
-                <h3 class="fw-bold m-0 text-danger" id="statLowStock">0</h3>
-              </div>
-              <i class="fa-solid fa-triangle-exclamation fa-2x text-danger"></i>
-            </div>
-          </div>
-        </div>
+        <i class="fa-solid fa-cubes fa-2x text-primary"></i>
       </div>
+    </div>
+  </div>
+  <div class="col-md col-6">
+    <div class="card p-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="text-muted small">พร้อมใช้งาน</div>
+          <h3 class="fw-bold m-0 text-success" id="statAvailable">0</h3>
+        </div>
+        <i class="fa-solid fa-circle-check fa-2x text-success"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-md col-6">
+    <div class="card p-3 stat-click" id="cardUnavailable" onclick="toggleStatusFilter()" title="กดเพื่อกรองเฉพาะรายการที่ไม่พร้อมใช้งาน">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="text-muted small">ไม่พร้อมใช้งาน</div>
+          <h3 class="fw-bold m-0 text-secondary" id="statUnavailable">0</h3>
+          <div class="small text-muted" id="statUnavailableDetail"></div>
+        </div>
+        <i class="fa-solid fa-ban fa-2x text-secondary"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-md col-6">
+    <div class="card p-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="text-muted small">กำลังถูกยืม</div>
+          <h3 class="fw-bold m-0 text-warning" id="statBorrowed">0</h3>
+        </div>
+        <i class="fa-solid fa-people-carry-box fa-2x text-warning"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-md col-6">
+    <div class="card p-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="text-muted small">สต็อกต่ำ / ต้องสั่งเพิ่ม</div>
+          <h3 class="fw-bold m-0 text-danger" id="statLowStock">0</h3>
+        </div>
+        <i class="fa-solid fa-triangle-exclamation fa-2x text-danger"></i>
+      </div>
+    </div>
+  </div>
+</div>
 
       <!-- Navigation Tabs -->
       <ul class="nav nav-pills mb-3" id="mainTab" role="tablist">
@@ -1410,6 +1427,10 @@
         try {
           localStorage.setItem('btt_operator', getOperator())
         } catch (e) {}
+        if (dataLoaded) {
+          filterAssets()
+          renderBorrowTable(globalBorrows)
+        }
       }
       function initOperator() {
         renderOperatorOptions()
@@ -1481,6 +1502,13 @@
         document.getElementById('statTotal').innerText = sm.total || 0
         document.getElementById('statAvailable').innerText = sm.available || 0
         document.getElementById('statBorrowed').innerText = sm.borrowed || 0
+
+        document.getElementById('statUnavailable').innerText = sm.unavailable || 0
+        document.getElementById('statUnavailableDetail').innerText = Object.keys(
+          sm.unavailableDetail || {}
+        )
+          .map(k => k + ' ' + sm.unavailableDetail[k])
+          .join(' · ')
         document.getElementById('statLowStock').innerText =
           sm.lowStockCount || 0
 
@@ -2152,104 +2180,83 @@
         if (assets.length === 0) {
           tbody.innerHTML =
             '<tr><td colspan="12" class="text-center py-4 text-muted">ไม่พบข้อมูลอุปกรณ์</td></tr>'
-          return
-        }
-        var NOIMG = 'https://placehold.co/150x150?text=No+Img'
-        var out = []
-        assets.forEach(function (item) {
-          var code = String(item[3] || '')
-          var c = escapeHtml(code)
-          var status = item[13] || 'พร้อมใช้งาน'
-          var imgUrl = item[2] || NOIMG
-          var qrUrl =
-            'https://quickchart.io/qr?size=100&text=' +
-            encodeURIComponent(qrText(code))
-          var badge = '<span class="badge badge-available">พร้อมใช้งาน</span>'
-          if (status === 'ถูกยืม')
-            badge = '<span class="badge badge-borrowed">ถูกยืม</span>'
-          else if (status !== 'พร้อมใช้งาน')
-            badge =
-              '<span class="badge badge-repair">' +
-              escapeHtml(status) +
-              '</span>'
-          out.push(
-            '<tr>' +
-              '<td><input type="checkbox" class="asset-checkbox" value="' +
-              c +
-              '"' +
-              (selectedCodes.has(code) ? ' checked' : '') +
-              '></td>' +
-              '<td><img src="' +
-              escapeHtml(imgUrl) +
-              '" class="asset-img" data-act="img" data-img="' +
-              escapeHtml(imgUrl) +
-              '" title="ดูภาพขยาย" onerror="this.onerror=null;this.src=&quot;' +
-              NOIMG +
-              '&quot;"></td>' +
-              '<td><img src="' +
-              escapeHtml(qrUrl) +
-              '" class="qr-thumb" data-act="qr" data-code="' +
-              c +
-              '" data-qr="' +
-              escapeHtml(qrUrl) +
-              '" title="ดู QR Code"></td>' +
-              '<td class="fw-bold">' +
-              c +
-              '</td>' +
-              '<td>' +
-              escapeHtml(item[4] || '') +
-              '</td>' +
-              '<td>' +
-              escapeHtml(item[5] || '-') +
-              '</td>' +
-              '<td>' +
-              escapeHtml(item[6] || '-') +
-              '</td>' +
-              '<td class="text-center">' +
-              escapeHtml(item[10] || 0) +
-              '</td>' +
-              '<td class="text-center">' +
-              escapeHtml(item[11] || 0) +
-              '</td>' +
-              '<td class="text-center fw-bold">' +
-              escapeHtml(item[12] || 0) +
-              '</td>' +
-              '<td class="text-center">' +
-              badge +
-              '</td>' +
-              '<td class="text-center">' +
-              (activeBorrows(code).length
-                ? '<button class="btn btn-sm btn-success me-1" data-act="ret" data-code="' +
-                  c +
-                  '" title="คืนอุปกรณ์"><i class="fa-solid fa-rotate-left"></i></button>'
-                : '') +
-              '<button class="btn btn-sm btn-outline-primary me-1" data-act="edit" data-code="' +
-              c +
-              '" title="แก้ไข"><i class="fa-solid fa-pen"></i></button>' +
-              '<button class="btn btn-sm btn-outline-danger" data-act="del" data-code="' +
-              c +
-              '" title="ลบ"><i class="fa-solid fa-trash"></i></button>' +
-              '</td></tr>'
-          )
-        })
-        tbody.innerHTML = out.join('')
+        return
       }
+      var NOIMG = 'https://placehold.co/150x150?text=No+Img'
+      var out = []
+      assets.forEach(function (item) {
+        var code = String(item[3] || '')
+        var c = escapeHtml(code)
+        var status = item[13] || 'ไม่ระบุ'
+        var imgUrl = item[2] || NOIMG
+        var qrUrl =
+          'https://quickchart.io/qr?size=100&text=' +
+          encodeURIComponent(qrText(code))
+        var badge = '<span class="badge badge-available">พร้อมใช้งาน</span>'
+        if (status === 'ถูกยืม')
+          badge = '<span class="badge badge-borrowed">ถูกยืม</span>'
+        else if (status !== 'พร้อมใช้งาน')
+          badge =
+          '<span class="badge badge-repair">' + escapeHtml(status) + '</span>'
+        out.push(
+        '<tr>' +
+          '<td><input type="checkbox" class="asset-checkbox" value="' + c + '"' +
+          (selectedCodes.has(code) ? ' checked' : '') + '></td>' +
+          '<td><img src="' + escapeHtml(imgUrl) +
+          '" class="asset-img" data-act="img" data-img="' + escapeHtml(imgUrl) +
+          '" title="ดูภาพขยาย" onerror="this.onerror=null;this.src=&quot;' + NOIMG + '&quot;"></td>' +
+          '<td><img src="' + escapeHtml(qrUrl) +
+          '" class="qr-thumb" data-act="qr" data-code="' + c +
+          '" data-qr="' + escapeHtml(qrUrl) + '" title="ดู QR Code"></td>' +
+          '<td class="fw-bold">' + c + '</td>' +
+          '<td>' + escapeHtml(item[4] || '') + '</td>' +
+          '<td>' + escapeHtml(item[5] || '-') + '</td>' +
+          '<td>' + escapeHtml(item[6] || '-') + '</td>' +
+          '<td class="text-center">' + escapeHtml(item[10] || 0) + '</td>' +
+          '<td class="text-center">' + escapeHtml(item[11] || 0) + '</td>' +
+          '<td class="text-center fw-bold">' + escapeHtml(item[12] || 0) + '</td>' +
+          '<td class="text-center">' + badge + '</td>' +
+          '<td class="text-center">' +
+          (myActiveBorrows(code).length
+            ? '<button class="btn btn-sm btn-success me-1" data-act="ret" data-code="' +
+              c + '" title="คืนอุปกรณ์"><i class="fa-solid fa-rotate-left"></i></button>'
+            : '') +
+          '<button class="btn btn-sm btn-outline-primary me-1" data-act="edit" data-code="' +
+          c + '" title="แก้ไข"><i class="fa-solid fa-pen"></i></button>' +
+          '<button class="btn btn-sm btn-outline-danger" data-act="del" data-code="' +
+          c + '" title="ลบ"><i class="fa-solid fa-trash"></i></button>' +
+          '</td></tr>'
+      )
+    })
+    tbody.innerHTML = out.join('')
+  }
 
-      function filterAssets() {
-        const q = document.getElementById('searchInput').value.toLowerCase()
-        const cat = document.getElementById('categoryFilter').value
+      let statusFilterOn = false
 
-        const filtered = globalAssets.filter(item => {
-          const code = String(item[3] || '').toLowerCase()
-          const name = String(item[4] || '').toLowerCase()
-          const itemCat = item[5] || ''
-          const matchQuery = code.includes(q) || name.includes(q)
-          const matchCat = cat === '' || itemCat === cat
-          return matchQuery && matchCat
-        })
+function toggleStatusFilter() {
+  statusFilterOn = !statusFilterOn
+  document
+    .getElementById('cardUnavailable')
+    .classList.toggle('active', statusFilterOn)
+  filterAssets()
+}
 
-        renderAssetTable(filtered)
-      }
+function filterAssets() {
+  const q = document.getElementById('searchInput').value.toLowerCase()
+  const cat = document.getElementById('categoryFilter').value
+
+  const filtered = globalAssets.filter(item => {
+    const code = String(item[3] || '').toLowerCase()
+    const name = String(item[4] || '').toLowerCase()
+    const itemCat = item[5] || ''
+    const matchQuery = code.includes(q) || name.includes(q)
+    const matchCat = cat === '' || itemCat === cat
+    const matchStatus = !statusFilterOn || item[13] !== 'พร้อมใช้งาน'
+    return matchQuery && matchCat && matchStatus
+  })
+
+  renderAssetTable(filtered)
+}
 
       function toggleSelectAll(master) {
         const checkboxes = document.querySelectorAll('.asset-checkbox')
@@ -2701,7 +2708,7 @@
           html: info,
           icon: it ? 'success' : 'info',
           showCancelButton: true,
-          showDenyButton: activeBorrows(code).length > 0,
+          showDenyButton: myActiveBorrows(code).length > 0,
           confirmButtonText: 'ไปที่รายการเบิก',
           denyButtonText: 'คืนอุปกรณ์',
           cancelButtonText: 'ปิด'
@@ -2855,159 +2862,139 @@
         })
       }
 
-      function returnFromAsset(code) {
-        var list = activeBorrows(code)
-        if (!list.length) {
-          Swal.fire(
-            'ไม่มีรายการค้างคืน',
-            'อุปกรณ์ ' + code + ' ไม่มีรายการที่กำลังยืมอยู่',
-            'info'
-          )
-          return
-        }
-        if (list.length === 1) {
-          returnAssetItem(code, list[0][11])
-          return
-        }
-        var opts = {}
-        list.forEach(function (r) {
-          opts[r[11]] =
-            r[6] + ' · ' + r[3] + ' ชิ้น · เบิก ' + r[4] + ' · ' + r[2]
-        })
-        Swal.fire({
-          title: 'เลือกรายการที่จะคืน',
-          text: code + ' มี ' + list.length + ' รายการที่ค้างคืน',
-          input: 'select',
-          inputOptions: opts,
-          inputPlaceholder: '-- เลือกรายการ --',
-          showCancelButton: true,
-          confirmButtonText: 'ถัดไป',
-          cancelButtonText: 'ยกเลิก',
-          inputValidator: function (v) {
-            return !v && 'กรุณาเลือกรายการ'
-          }
-        }).then(function (res) {
-          if (res.isConfirmed) returnAssetItem(code, res.value)
+      function myActiveBorrows(code) {
+        var me = normNm(getOperator())
+        if (!me) return []
+        return activeBorrows(code).filter(function (r) {
+          return normNm(r[6]) === me
         })
       }
+
+      function returnFromAsset(code) {
+  if (!getOperator()) {
+    Swal.fire('คำเตือน', 'กรุณาเลือกชื่อผู้ใช้งานมุมขวาบนก่อน', 'warning')
+    return
+  }
+  var list = myActiveBorrows(code)
+  if (!list.length) {
+    Swal.fire(
+      'ไม่มีรายการที่คุณต้องคืน',
+      'อุปกรณ์ ' + code + ' ไม่มีรายการที่ ' + getOperator() + ' ยืมอยู่',
+      'info'
+    )
+    return
+  }
+  if (list.length === 1) {
+    returnAssetItem(code, list[0][11])
+    return
+  }
+  var opts = {}
+  list.forEach(function (r) {
+    opts[r[11]] = r[3] + ' ชิ้น · เบิก ' + r[4] + ' · ' + r[2]
+  })
+  Swal.fire({
+    title: 'เลือกรายการที่จะคืน',
+    input: 'select',
+    inputOptions: opts,
+    inputPlaceholder: '-- เลือกรายการ --',
+    showCancelButton: true,
+    confirmButtonText: 'ถัดไป',
+    cancelButtonText: 'ยกเลิก',
+    inputValidator: function (v) {
+      return !v && 'กรุณาเลือกรายการ'
+    }
+  }).then(function (res) {
+    if (res.isConfirmed) returnAssetItem(code, res.value)
+  })
+}
 
       function returnAssetItem(itemCode, rowIndex) {
-        var b = globalBorrows.find(function (r) {
-          return String(r[11]) === String(rowIndex)
-        })
-        var borrower = b ? String(b[6]) : ''
-        var names = borrowersList.slice()
-        if (borrower && names.indexOf(borrower) < 0) names.push(borrower)
-        var op = getOperator()
-        Swal.fire({
-          title: 'ยืนยันการคืน?',
-          html:
-            'คืนอุปกรณ์ <b>' +
-            escapeHtml(itemCode) +
-            '</b>' +
-            (b ? ' จำนวน ' + escapeHtml(b[3]) + ' ชิ้น' : '') +
-            '<br><small class="text-muted">ผู้เบิก: ' +
-            escapeHtml(borrower) +
-            '</small><br><br>ติ๊กเลือกชื่อผู้คืน' +
-            '<div class="list-group mt-2" id="returnerList" style="max-height:220px;overflow-y:auto">' +
-            nameChoicesHtml(names, names.indexOf(op) >= 0 ? op : '') +
-            '</div>',
-          didOpen: function () {
-            singleTick(document.getElementById('returnerList'))
-          },
-          preConfirm: function () {
-            var t = document.querySelector('#returnerList .name-tick:checked')
-            if (!t) {
-              Swal.showValidationMessage('กรุณาติ๊กเลือกชื่อผู้คืน')
-              return false
-            }
-            return t.value
-          },
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonText: 'ยืนยันคืน',
-          cancelButtonText: 'ยกเลิก'
-        }).then(result => {
-          if (result.isConfirmed) {
-            var returnedBy = result.value
-            Swal.fire({
-              title: 'กำลังบันทึกการคืน...',
-              allowOutsideClick: false,
-              didOpen: () => Swal.showLoading()
-            })
-            google.script.run
-              .withSuccessHandler(res => {
-                Swal.close()
-                if (res.success) {
-                  Swal.fire('สำเร็จ', res.message, 'success')
-                  loadData()
-                } else {
-                  Swal.fire('ข้อผิดพลาด', res.message, 'error')
-                }
-              })
-              .withFailureHandler(onError)
-              .returnAsset(itemCode, rowIndex, getOperator(), returnedBy)
-          }
-        })
-      }
+  var me = getOperator()
+  var b = globalBorrows.find(function (r) {
+    return String(r[11]) === String(rowIndex)
+  })
+  if (!me) {
+    Swal.fire('คำเตือน', 'กรุณาเลือกชื่อผู้ใช้งานมุมขวาบนก่อน', 'warning')
+    return
+  }
+  if (!b || normNm(b[6]) !== normNm(me)) {
+    Swal.fire(
+      'คืนไม่ได้',
+      'รายการนี้ไม่ใช่ของคุณ คืนได้เฉพาะผู้เบิกเท่านั้น',
+      'warning'
+    )
+    return
+  }
+  Swal.fire({
+    title: 'ยืนยันการคืน?',
+    html:
+      'คืนอุปกรณ์ <b>' + escapeHtml(itemCode) + '</b> จำนวน ' +
+      escapeHtml(b[3]) + ' ชิ้น<br><small class="text-muted">ผู้คืน: ' +
+      escapeHtml(me) + '</small>',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'ยืนยันคืน',
+    cancelButtonText: 'ยกเลิก'
+  }).then(result => {
+    if (!result.isConfirmed) return
+    Swal.fire({
+      title: 'กำลังบันทึกการคืน...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    })
+    google.script.run
+      .withSuccessHandler(res => {
+        Swal.close()
+        if (res.success) {
+          Swal.fire('สำเร็จ', res.message, 'success')
+          loadData()
+        } else {
+          Swal.fire('ข้อผิดพลาด', res.message, 'error')
+        }
+      })
+      .withFailureHandler(onError)
+      .returnAsset(itemCode, rowIndex, me, me)
+  })
+}
 
       function renderBorrowTable(borrows) {
-        var tbody = document.getElementById('borrowTableBody')
-        if (borrows.length === 0) {
-          tbody.innerHTML =
-            '<tr><td colspan="11" class="text-center py-4 text-muted">ไม่พบประวัติการเบิก-คืน</td></tr>'
-          return
-        }
-        var out = []
-        borrows.forEach(function (row) {
-          var isReturned = row[8] === 'คืนแล้ว'
-          var badge = isReturned
-            ? '<span class="badge bg-success">คืนแล้ว</span>'
-            : '<span class="badge bg-warning text-dark">กำลังยืม</span>'
-          var btn = isReturned
-            ? '-'
-            : '<button class="btn btn-sm btn-outline-success" data-act="return" data-code="' +
-              escapeHtml(row[1]) +
-              '" data-row="' +
-              escapeHtml(row[11]) +
-              '"><i class="fa-solid fa-rotate-left me-1"></i> คืนอุปกรณ์</button>'
-          out.push(
-            '<tr><td>' +
-              escapeHtml(row[0]) +
-              '</td>' +
-              '<td class="fw-bold">' +
-              escapeHtml(row[1]) +
-              '</td>' +
-              '<td>' +
-              escapeHtml(row[2]) +
-              '</td>' +
-              '<td>' +
-              escapeHtml(row[3]) +
-              '</td>' +
-              '<td>' +
-              escapeHtml(row[6]) +
-              '</td>' +
-              '<td>' +
-              escapeHtml(row[7]) +
-              '</td>' +
-              '<td>' +
-              escapeHtml(row[4]) +
-              '</td>' +
-              '<td>' +
-              escapeHtml(row[5]) +
-              '</td>' +
-              '<td>' +
-              escapeHtml(row[12] || '-') +
-              '</td>' +
-              '<td>' +
-              badge +
-              '</td><td>' +
-              btn +
-              '</td></tr>'
-          )
-        })
-        tbody.innerHTML = out.join('')
-      }
+  var tbody = document.getElementById('borrowTableBody')
+  if (borrows.length === 0) {
+    tbody.innerHTML =
+      '<tr><td colspan="11" class="text-center py-4 text-muted">ไม่พบประวัติการเบิก-คืน</td></tr>'
+    return
+  }
+  var me = normNm(getOperator())
+  var out = []
+  borrows.forEach(function (row) {
+    var isReturned = row[8] === 'คืนแล้ว'
+    var mine = !!me && normNm(row[6]) === me
+    var badge = isReturned
+      ? '<span class="badge bg-success">คืนแล้ว</span>'
+      : '<span class="badge bg-warning text-dark">กำลังยืม</span>'
+    var btn
+    if (isReturned) btn = '-'
+    else if (mine)
+      btn =
+        '<button class="btn btn-sm btn-outline-success" data-act="return" data-code="' +
+        escapeHtml(row[1]) + '" data-row="' + escapeHtml(row[11]) +
+        '"><i class="fa-solid fa-rotate-left me-1"></i> คืนอุปกรณ์</button>'
+    else btn = '<span class="text-muted small">ผู้อื่นเป็นผู้ยืม</span>'
+    out.push(
+      '<tr><td>' + escapeHtml(row[0]) + '</td>' +
+        '<td class="fw-bold">' + escapeHtml(row[1]) + '</td>' +
+        '<td>' + escapeHtml(row[2]) + '</td>' +
+        '<td>' + escapeHtml(row[3]) + '</td>' +
+        '<td>' + escapeHtml(row[6]) + '</td>' +
+        '<td>' + escapeHtml(row[7]) + '</td>' +
+        '<td>' + escapeHtml(row[4]) + '</td>' +
+        '<td>' + escapeHtml(row[5]) + '</td>' +
+        '<td>' + escapeHtml(row[12] || '-') + '</td>' +
+        '<td>' + badge + '</td><td>' + btn + '</td></tr>'
+    )
+  })
+  tbody.innerHTML = out.join('')
+}
 
       function renderLogTable(logs) {
         const tbody = document.getElementById('logTableBody')
