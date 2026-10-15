@@ -197,11 +197,32 @@ function getInitialData() {
       }
     });
 
+    var unavailableDetail = {};
+    assets.forEach(function (r) {
+      var s = String(r[C.STATUS] || "").trim();
+      if (s !== "พร้อมใช้งาน") {
+        s = s || "ไม่ระบุ";
+        unavailableDetail[s] = (unavailableDetail[s] || 0) + 1;
+      }
+    });
+    var unavailableCount = 0;
+    Object.keys(unavailableDetail).forEach(function (k) {
+      unavailableCount += unavailableDetail[k];
+    });
+
     var summary = {
       total: assets.length,
-      available: assets.filter(function (r) { return r[C.STATUS] === "พร้อมใช้งาน"; }).length,
-      borrowed: borrows.filter(function (r) { return r[8] === "กำลังยืม"; }).length,
-      lowStockCount: assets.filter(function (r) { return r[C.NEEDBUY] === "ต้องซื้อเพิ่ม"; }).length,
+      available: assets.filter(function (r) {
+        return r[C.STATUS] === "พร้อมใช้งาน";
+      }).length,
+      borrowed: borrows.filter(function (r) {
+        return r[8] === "กำลังยืม";
+      }).length,
+      unavailable: unavailableCount,
+      unavailableDetail: unavailableDetail,
+      lowStockCount: assets.filter(function (r) {
+        return r[C.NEEDBUY] === "ต้องซื้อเพิ่ม";
+      }).length,
     };
 
     return {
@@ -569,49 +590,84 @@ function normName_(v) {
   return String(v || "").replace(/\s+/g, " ").trim().toLowerCase();
 }
 
+function isAdminName_(who) {
+  return (CONFIG.RETURN_ADMINS || []).some(function (n) {
+    return normName_(n) === who;
+  });
+}
+
 function returnAsset(itemCode, sheetRow, operator, returnedBy) {
   try {
     return withLock_(function () {
-      var b = borrowSheet_(), r = Number(sheetRow);
+      var b = borrowSheet_(),
+        r = Number(sheetRow);
       if (!(r >= 2 && r <= b.getLastRow())) {
-        return { success: false, message: "ไม่พบรายการ กรุณารีเฟรชแล้วลองใหม่" };
+        return {
+          success: false,
+          message: "ไม่พบรายการ กรุณารีเฟรชแล้วลองใหม่",
+        };
       }
-      if (String(b.getRange(r, 2).getValue()).trim() !== String(itemCode).trim()) {
-        return { success: false, message: "ข้อมูลไม่ตรงกัน กรุณารีเฟรชแล้วลองใหม่" };
+      if (
+        String(b.getRange(r, 2).getValue()).trim() !== String(itemCode).trim()
+      ) {
+        return {
+          success: false,
+          message: "ข้อมูลไม่ตรงกัน กรุณารีเฟรชแล้วลองใหม่",
+        };
       }
       if (b.getRange(r, 9).getValue() === "คืนแล้ว") {
         return { success: false, message: "รายการนี้ถูกคืนไปแล้ว" };
       }
-      
+
       var borrower = String(b.getRange(r, 7).getValue());
       var who = normName_(returnedBy);
       if (!who) return { success: false, message: "กรุณาเลือกชื่อผู้คืน" };
-      
-      var isAdmin = (CONFIG.RETURN_ADMINS || []).some(function (n) {
-        return normName_(n) === who;
-      });
-      if (who !== normName_(borrower) && !isAdmin) {
+
+      var opName = normName_(operator);
+      if (!opName) {
+        return { success: false, message: "กรุณาเลือกชื่อผู้ใช้งานก่อนคืน" };
+      }
+      if (opName !== normName_(borrower) && !isAdminName_(opName)) {
         return {
           success: false,
-          message: "สามารถคืนได้เฉพาะผู้เบิกเท่านั้น (ผู้เบิกรายการนี้: " + borrower + ")",
+          message: "รายการนี้เป็นของ " + borrower + " คุณไม่สามารถคืนแทนได้",
         };
       }
-      
+
+      if (who !== normName_(borrower) && !isAdminName_(who)) {
+        return {
+          success: false,
+          message:
+            "สามารถคืนได้เฉพาะผู้เบิกเท่านั้น (ผู้เบิกรายการนี้: " +
+            borrower +
+            ")",
+        };
+      }
+
       var qty = Number(b.getRange(r, 4).getValue()) || 1;
       var split = {
         btt: Number(b.getRange(r, 10).getValue()) || 0,
         tke: Number(b.getRange(r, 11).getValue()) || 0,
       };
-      
-      b.getRange(r, 6).setValue(Utilities.formatDate(new Date(), "Asia/Bangkok", "dd/MM/yyyy HH:mm:ss"));
+
+      b.getRange(r, 6).setValue(
+        Utilities.formatDate(new Date(), "Asia/Bangkok", "dd/MM/yyyy HH:mm:ss"),
+      );
       b.getRange(r, 9).setValue("คืนแล้ว");
       b.getRange(r, 12).setValue(sanitizeInput_(returnedBy));
-      
+
       adjustStock_(itemCode, qty, split);
       logActivity(
         "คืนอุปกรณ์",
-        "รหัส: " + itemCode + " จำนวน: " + qty + " ผู้เบิก: " + borrower + " ผู้คืน: " + returnedBy,
-        operator || returnedBy
+        "รหัส: " +
+          itemCode +
+          " จำนวน: " +
+          qty +
+          " ผู้เบิก: " +
+          borrower +
+          " ผู้คืน: " +
+          returnedBy,
+        operator || returnedBy,
       );
       return { success: true, message: "คืนอุปกรณ์เข้าสต็อกเรียบร้อยแล้ว" };
     });
