@@ -1,0 +1,22 @@
+{
+  "name": "btt-stock-management",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "typecheck": "tsc --noEmit",
+    "deploy": "wrangler deploy",
+    "db:local": "wrangler d1 migrations apply BTT_STOCK_DB --local",
+    "db:remote": "wrangler d1 migrations apply BTT_STOCK_DB --remote",
+    "import:preview": "python scripts/import_excel.py ../BTT-Tools-deploy.xlsx --preview"
+  },
+  "dependencies": {
+    "jose": "^6.1.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20261021.0",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.45.0"
+  }
+}
