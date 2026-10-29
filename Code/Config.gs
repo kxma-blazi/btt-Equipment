@@ -2,6 +2,10 @@
 // File: Config.gs
 // ==========================================
 const CONFIG = {
+  TELEGRAM_TOKEN: "YOUR_TELEGRAM_BOT_TOKEN", // ใส่ Token ของ Telegram Bot (ถ้ามี)
+  TELEGRAM_CHAT_ID: "YOUR_CHAT_ID",           // ใส่ Chat ID สำหรับรับแจ้งเตือน
+  LOW_STOCK_THRESHOLD: 1,                     // แจ้งเตือนเมื่อสินค้าต่ำกว่ากำหนด
+  
   SPREADSHEET_ID: "1I5M57-Schy8lqPAcCmadX92hhGOV04c57a7ZyNTgkPA",
   SHEETS: {
     ASSETS: "Asset",
@@ -53,3 +57,4 @@ const CONFIG = {
     BRANCH: "main" 
   },
 };
+
