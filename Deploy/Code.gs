@@ -15,9 +15,9 @@ function doGet(e) {
 // รหัสผ่านตั้งที่ Project Settings > Script properties: ADMIN_PASSWORD, IT_PASSWORD
 // (ไม่มีค่า fallback ในโค้ดแล้ว ถ้าไม่ตั้งจะล็อกอินไม่ได้)
 const ROLE_ = { USER: 0, ADMIN: 1, IT: 2 };
-const USER_CAN_RETURN = false; // true = ผู้ใช้ทั่วไปคืนของตัวเองได้
-const ADMIN_NAMES_ = ["Admin-NOON", "Admin-SOM", "Admin-Macgie", "Admin-AON"]; // PASS : btt12345
-const IT_NAMES_ = ["IT-STANG", "IT-KENG", "IT-GOTJI", "IT-Macgie", "IT-AON"]; // PASS : btt12345
+const USER_CAN_RETURN = true; // true = ผู้ใช้ทั่วไปคืนได้ (เลือกชื่อผู้คืนเอง ไม่ต้องล็อกอิน)
+const ADMIN_NAMES_ = ["ADMIN-NOON", "ADMIN-SOM", "ADMIN-Macgie", "ADMIN-AON"];
+const IT_NAMES_ = ["IT-STANG", "IT-KENG", "IT-GOTJI", "IT-Macgie", "IT-AON"];
 const MAX_BORROW_ITEMS_ = 50;
 
 function clean_(v) {
@@ -502,7 +502,11 @@ function getInitialData(tk) {
       role: sess.role,
       name: sess.name,
       assets: assets,
-      borrows: isStaff ? borrows : [],
+      borrows: isStaff
+        ? borrows
+        : borrows.filter(function (r) {
+            return r[8] === "กำลังยืม";
+          }), // ผู้ใช้ทั่วไปเห็นเฉพาะที่ยังไม่คืน
       logs: logs,
       audit: audit,
       categories: categories,
@@ -1132,12 +1136,20 @@ function adjustStock_(code, delta, split) {
   }
 
   rng.setValues([[btt, tke]]);
-  setTotal_(sheet, row, btt + tke);
 
-  var st = sheet.getRange(row, C.STATUS + 1),
-    cur = st.getValue();
-  if (btt + tke === 0 && cur === "พร้อมใช้งาน") st.setValue("ถูกยืม");
-  else if (btt + tke > 0 && cur === "ถูกยืม") st.setValue("พร้อมใช้งาน");
+  // คำนวณยอดรวม TOTAL (คอลัมน์ M) หรือเซ็ตสูตร
+  var total = btt + tke;
+  setTotal_(sheet, row, total);
+
+  // อัปเดตสถานะอัตโนมัติ: ถ้าของเหลือมากกว่า 0 และสถานะเดิมเป็นถูกยืม ให้เปลี่ยนเป็นพร้อมใช้งาน
+  var st = sheet.getRange(row, C.STATUS + 1);
+  var cur = st.getValue();
+  if (total === 0 && cur === "พร้อมใช้งาน") {
+    st.setValue("ถูกยืม");
+  } else if (total > 0 && (cur === "ถูกยืม" || !cur)) {
+    st.setValue("พร้อมใช้งาน");
+  }
+
   return out;
 }
 
@@ -1149,7 +1161,33 @@ function normName_(v) {
     .toLowerCase();
 }
 
-function returnAsset(itemCode, sheetRow, operator, returnedBy, tk) {
+// เทียบรหัสแบบยืดหยุ่น: ไม่สนตัวพิมพ์เล็ก/ใหญ่ ช่องว่าง ขีด (TO-014 = to014 = "TO 014")
+// และพิมพ์แค่ตัวเลขท้ายได้ (14 หรือ 014)
+function codeMatch_(input, code) {
+  var norm = function (v) {
+    return String(v || "")
+      .replace(/[\s\-_]/g, "")
+      .toLowerCase();
+  };
+  var a = norm(input),
+    b = norm(code);
+  if (!a) return false;
+  if (a === b) return true;
+  if (/^\d+$/.test(a)) {
+    var m = /(\d+)$/.exec(b);
+    return !!m && parseInt(a, 10) === parseInt(m[1], 10);
+  }
+  return false;
+}
+
+function returnAsset(
+  itemCode,
+  sheetRow,
+  operator,
+  returnedBy,
+  tk,
+  confirmCode,
+) {
   try {
     var sess = session_(tk);
     var staff = ROLE_[sess.role] >= ROLE_.ADMIN;
@@ -1185,16 +1223,16 @@ function returnAsset(itemCode, sheetRow, operator, returnedBy, tk) {
       var who = normName_(returnedBy);
       if (!who) return { success: false, message: "กรุณาเลือกชื่อผู้คืน" };
 
-      if (!staff) {
-        var opName = normName_(operator);
-        if (!opName)
-          return { success: false, message: "กรุณาเลือกชื่อผู้ใช้งานก่อนคืน" };
-        if (opName !== normName_(borrower) || who !== normName_(borrower)) {
-          return {
-            success: false,
-            message: "รายการนี้เป็นของ " + borrower + " คุณไม่สามารถคืนแทนได้",
-          };
-        }
+      // ผู้ใช้ทั่วไป: ต้องสแกน/พิมพ์รหัสจากตัวอุปกรณ์ให้ตรง เพื่อยืนยันว่าของอยู่ในมือจริง
+      // (แอดมินคืนโดยไม่สแกนได้ เช่น กรณีของหาย/รับคืนแทน)
+      if (!staff && !codeMatch_(confirmCode, itemCode)) {
+        return {
+          success: false,
+          message:
+            "ต้องสแกน QR หรือพิมพ์รหัสที่ติดบนตัวอุปกรณ์ " +
+            itemCode +
+            " ให้ตรงก่อนจึงจะคืนได้",
+        };
       }
 
       var qty = Number(b.getRange(r, 4).getValue()) || 1;
@@ -1219,8 +1257,11 @@ function returnAsset(itemCode, sheetRow, operator, returnedBy, tk) {
           " ผู้เบิก: " +
           borrower +
           " ผู้คืน: " +
-          returnedBy,
-        operator || returnedBy,
+          returnedBy +
+          (staff && !clean_(confirmCode)
+            ? " (แอดมินคืนโดยไม่สแกน)"
+            : " (ยืนยันด้วยรหัสอุปกรณ์)"),
+        sanitizeInput_(returnedBy) || operator,
       );
       return { success: true, message: "คืนอุปกรณ์เข้าสต็อกเรียบร้อยแล้ว" };
     });
@@ -1772,7 +1813,7 @@ function setPasswordsFromEditor() {
     throw new Error(
       "ใส่รหัสใหม่ในโค้ดก่อน (อย่างน้อย 8 ตัวอักษรทั้งสองรหัส) แล้วค่อยรัน",
     );
-  if (ADMIN_NEW === IT_NEW) throw new Error("รหัส Admin และ IT ต้องไม่ซ้ำกัน");
+  if (ADMIN_NEW === IT_NEW) throw new Error("รหัส ADMIN และ IT ต้องไม่ซ้ำกัน");
   var props = PropertiesService.getScriptProperties();
   props.setProperty("ADMIN_PASSWORD", ADMIN_NEW);
   props.setProperty("IT_PASSWORD", IT_NEW);
